@@ -332,8 +332,16 @@ function default_violation_config(): array {
         'escape_f11_block'    => 1,  // Escape / F11 blockers
         'devtools_block'      => 1,
         'windows_key_block'   => 1,  // block Windows/Super key
-        'screenshot_block'    => 1,  // block Print Screen and screenshot capture keys
+        'screenshot_block'    => 1,  // block Print Screen + Mac/Linux screenshot key combos
         'window_blur'         => 1,
+        // Complete-lockdown toggles (ON by default, admin can turn off):
+        'mac_shortcuts_block' => 1,  // Cmd+Tab, Cmd+Q, Cmd+H, Cmd+M, Cmd+Space, Cmd+W, Cmd+N, Cmd+T
+        'alt_shortcuts_block' => 1,  // Alt+Tab, Alt+F4, Alt+Space, Alt+Left/Right (browser nav)
+        'all_function_keys_block' => 1, // F1..F12 all hard-blocked
+        'extension_overlay_block' => 1, // MutationObserver removes injected iframes / AI overlays / extension UI
+        'clipboard_api_block' => 1,  // block navigator.clipboard reads, drag-drop
+        'screen_sharing_block' => 1, // detect screen-sharing / remote access (RDP, AnyDesk, TeamViewer heuristics)
+        'remote_access_block'  => 1, // aggressive remote-desktop heuristics (multi-display, mouse-latency)
         // Future-proof toggles — default OFF (can be enabled when client-side hooks ship):
         'second_display'      => 0,
         'screen_recording'    => 0,

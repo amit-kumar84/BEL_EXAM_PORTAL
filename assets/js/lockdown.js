@@ -315,6 +315,242 @@ if (violCheck('windows_key_block') || violCheck('screenshot_block')) {
 
 window.addEventListener('beforeunload', e => { if (!submitted) { e.preventDefault(); e.returnValue = ''; } });
 
+// ============================================================================
+// COMPLETE LOCKDOWN — Mac / Linux / Windows hard-blocks + extension + screen-share
+// All gated by VIOLATION_CONFIG toggles from admin/exams.php.
+// ============================================================================
+
+// ---- 1. Mac shortcuts: Cmd+Tab, Cmd+Q, Cmd+H, Cmd+M, Cmd+Space, Cmd+W, Cmd+N, Cmd+T, Cmd+` ----
+// ---- 2. Alt shortcuts: Alt+Tab, Alt+F4, Alt+Space, Alt+Left/Right ----
+// ---- 3. All function keys F1..F12 ----
+// ---- 4. Mac screenshot combos: Cmd+Shift+3/4/5, Cmd+Ctrl+Shift+3/4 ----
+// Single consolidated handler running in capture phase, highest priority.
+function _hardBlockKey(e, type, desc, label) {
+  try { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); } catch(_) {}
+  if (!submitted) {
+    logViolation(type, desc);
+    if (label) showBlockedKeyWarning(label);
+  }
+  return false;
+}
+
+document.addEventListener('keydown', e => {
+  if (submitted) return;
+  const k = (e.key || '');
+  const code = e.keyCode || 0;
+  const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '');
+  const meta = e.metaKey;
+  const ctrl = e.ctrlKey;
+  const shift = e.shiftKey;
+  const alt = e.altKey;
+  const kLower = k.toLowerCase();
+
+  // --- All function keys F1..F12 ---
+  if (violCheck('all_function_keys_block') && /^F([1-9]|1[0-2])$/.test(k)) {
+    return _hardBlockKey(e, 'blocked_key', 'Function key blocked: ' + k, '⛔ ' + k + ' Blocked');
+  }
+
+  // --- Mac screenshot combos: Cmd+Shift+3/4/5, Cmd+Ctrl+Shift+3/4 ---
+  if (violCheck('screenshot_block') && meta && shift && (k === '3' || k === '4' || k === '5')) {
+    return _hardBlockKey(e, 'screenshot_attempt', 'Mac screenshot combo: Cmd+Shift+' + k, '📸 Screenshot Blocked');
+  }
+  // Linux: Shift+PrtScr, Ctrl+PrtScr, Alt+PrtScr already caught by base PrtScr check; add explicit.
+  if (violCheck('screenshot_block') && (shift || ctrl || alt) && (code === 44 || k === 'PrintScreen')) {
+    return _hardBlockKey(e, 'screenshot_attempt', 'Screenshot combo blocked', '📸 Screenshot Blocked');
+  }
+
+  // --- Mac shortcuts (all Cmd+X combos except allowed ones) ---
+  if (violCheck('mac_shortcuts_block') && meta && !ctrl) {
+    // Cmd+Tab (app switcher)
+    if (k === 'Tab') return _hardBlockKey(e, 'blocked_key', 'Blocked Cmd+Tab (app switcher)', '⛔ Cmd+Tab Blocked');
+    // Cmd+Q (quit app), Cmd+H (hide), Cmd+M (minimise), Cmd+W (close tab), Cmd+N (new window), Cmd+T (new tab)
+    if (['q','h','m','w','n','t'].includes(kLower)) {
+      return _hardBlockKey(e, 'blocked_key', 'Blocked Cmd+' + k.toUpperCase(), '⛔ Cmd+' + k.toUpperCase() + ' Blocked');
+    }
+    // Cmd+Space (Spotlight)
+    if (k === ' ' || code === 32) return _hardBlockKey(e, 'blocked_key', 'Blocked Cmd+Space (Spotlight)', '⛔ Spotlight Blocked');
+    // Cmd+` (cycle windows)
+    if (k === '`') return _hardBlockKey(e, 'blocked_key', 'Blocked Cmd+` (window cycle)', '⛔ Window Cycle Blocked');
+    // Cmd+, (preferences), Cmd+Option+Esc (force quit)
+    if (k === ',' || (alt && k === 'Escape')) return _hardBlockKey(e, 'blocked_key', 'Blocked Cmd combo', '⛔ Blocked');
+  }
+
+  // --- Alt shortcuts ---
+  if (violCheck('alt_shortcuts_block') && alt) {
+    // Alt+Tab (win/linux switcher), Alt+F4 (close window), Alt+Space (window menu)
+    if (k === 'Tab') return _hardBlockKey(e, 'blocked_key', 'Blocked Alt+Tab', '⛔ Alt+Tab Blocked');
+    if (k === 'F4')  return _hardBlockKey(e, 'blocked_key', 'Blocked Alt+F4', '⛔ Alt+F4 Blocked');
+    if (k === ' ')   return _hardBlockKey(e, 'blocked_key', 'Blocked Alt+Space', '⛔ Alt+Space Blocked');
+    // Alt+Left / Alt+Right = browser back/forward
+    if (k === 'ArrowLeft' || k === 'ArrowRight') {
+      return _hardBlockKey(e, 'blocked_key', 'Blocked Alt+' + k + ' (browser nav)', '⛔ Browser Nav Blocked');
+    }
+  }
+
+  // --- Extra Ctrl combos (backup to existing) ---
+  if (violCheck('keyboard_shortcuts') && (ctrl || meta)) {
+    // Ctrl+N (new window), Ctrl+T (new tab), Ctrl+Tab (switch tab), Ctrl+Shift+T (reopen tab)
+    if (['n','t'].includes(kLower))     return _hardBlockKey(e, 'blocked_key', 'Blocked Ctrl+' + k.toUpperCase(), '⛔ Ctrl+' + k.toUpperCase() + ' Blocked');
+    if (k === 'Tab')                    return _hardBlockKey(e, 'blocked_key', 'Blocked Ctrl+Tab', '⛔ Ctrl+Tab Blocked');
+    if (shift && kLower === 't')        return _hardBlockKey(e, 'blocked_key', 'Blocked Ctrl+Shift+T', '⛔ Blocked');
+    if (shift && kLower === 'n')        return _hardBlockKey(e, 'blocked_key', 'Blocked Ctrl+Shift+N (incognito)', '⛔ Blocked');
+    // Linux: Super+L (lock screen) — Meta+L
+    if (meta && kLower === 'l')         return _hardBlockKey(e, 'blocked_key', 'Blocked Meta+L (lock)', '⛔ Blocked');
+  }
+}, {capture: true, passive: false});
+
+// Also intercept keyup for the same set (some OS capture on keyup for screenshots)
+document.addEventListener('keyup', e => {
+  if (submitted) return;
+  const k = (e.key || '');
+  const meta = e.metaKey, shift = e.shiftKey;
+  if (violCheck('screenshot_block') && meta && shift && (k === '3' || k === '4' || k === '5')) {
+    try { e.preventDefault(); e.stopImmediatePropagation(); } catch(_){}
+  }
+  if (violCheck('all_function_keys_block') && /^F([1-9]|1[0-2])$/.test(k)) {
+    try { e.preventDefault(); e.stopImmediatePropagation(); } catch(_){}
+  }
+}, {capture: true, passive: false});
+
+// ---- 5. Clipboard API block + drag-drop block + cut ----
+if (violCheck('clipboard_api_block')) {
+  document.addEventListener('cut', e => { e.preventDefault(); logViolation('copy_paste', 'Cut attempted'); }, {capture:true});
+  document.addEventListener('dragstart', e => { e.preventDefault(); }, {capture:true});
+  document.addEventListener('drop', e => { e.preventDefault(); logViolation('blocked_key', 'Drop attempted'); }, {capture:true});
+  document.addEventListener('dragover', e => { e.preventDefault(); }, {capture:true});
+  // Neutralise navigator.clipboard (can't fully remove but reject reads)
+  try {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      const orig = navigator.clipboard.readText.bind(navigator.clipboard);
+      navigator.clipboard.readText = function() { logViolation('copy_paste', 'clipboard.readText blocked'); return Promise.reject(new Error('blocked')); };
+      // keep orig reference just so we don't crash if exam code needs it (we never do)
+      void orig;
+    }
+  } catch(_) {}
+}
+
+// ---- 6. Extension / AI overlay blocker (MutationObserver) ----
+if (violCheck('extension_overlay_block')) {
+  // Known extension / AI overlay signatures
+  const BAD_IDS = [
+    'grammarly', 'gramm', 'copilot', 'chatgpt', 'ai-assistant', 'ai-widget',
+    'honey', 'lastpass', 'bitwarden', 'dashlane', 'loom', 'notion', 'clipdrop',
+    'extension-', 'ext-', 'translate', 'deepl', 'monica'
+  ];
+  const BAD_ATTR = ['data-gramm', 'data-gramm_editor', 'data-grammarly-shadow-root', 'data-extension'];
+
+  function looksLikeExtensionNode(node) {
+    if (!node || node.nodeType !== 1) return false;
+    const id = (node.id || '').toLowerCase();
+    const cls = (node.className && typeof node.className === 'string' ? node.className : '').toLowerCase();
+    if (BAD_IDS.some(s => id.includes(s) || cls.includes(s))) return true;
+    for (const a of BAD_ATTR) { if (node.hasAttribute && node.hasAttribute(a)) return true; }
+    // Iframes from other origins injected into the page (not our own)
+    if (node.tagName === 'IFRAME') {
+      const src = (node.src || '') + '';
+      if (src && !src.startsWith(location.origin) && !src.startsWith('about:') && !src.startsWith('blob:')) return true;
+    }
+    // Very high z-index floating divs that are NOT ours
+    try {
+      const st = node instanceof HTMLElement ? window.getComputedStyle(node) : null;
+      if (st && (st.position === 'fixed' || st.position === 'absolute')) {
+        const z = parseInt(st.zIndex || '0', 10);
+        const isOurs = node.id === 'fs-overlay' || node.id === 'fs-exit-overlay' || node.id === 'blocked-key-toast' || node.closest('.exam-wrap, .exam-header, .exam-side, .exam-footer');
+        if (z > 2147483000 && !isOurs) return true;
+      }
+    } catch(_) {}
+    return false;
+  }
+
+  const obs = new MutationObserver(muts => {
+    if (submitted) return;
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (looksLikeExtensionNode(n)) {
+          try { n.remove(); } catch(_) {}
+          logViolation('extension_overlay', 'Extension / AI overlay removed: ' + (n.id || n.tagName));
+        }
+      }
+    }
+  });
+  try { obs.observe(document.documentElement, { childList: true, subtree: true, attributes: false }); } catch(_) {}
+
+  // Sweep on load for anything already injected
+  setTimeout(() => {
+    document.querySelectorAll('body *').forEach(n => {
+      if (looksLikeExtensionNode(n)) { try { n.remove(); } catch(_){}; logViolation('extension_overlay', 'Pre-loaded extension overlay removed'); }
+    });
+  }, 800);
+}
+
+// ---- 7. Screen sharing detection (getDisplayMedia already active heuristic) ----
+if (violCheck('screen_sharing_block')) {
+  // Method 1: wrap getDisplayMedia so if any script (incl. extension) asks, we log + reject
+  try {
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      const origGDM = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getDisplayMedia = function(...args) {
+        if (!submitted) { logViolation('screen_sharing', 'getDisplayMedia invoked (screen-share attempt)'); showBlockedKeyWarning('🛑 Screen Share Blocked'); }
+        return Promise.reject(new DOMException('Blocked by exam proctor', 'NotAllowedError'));
+      };
+      void origGDM;
+    }
+  } catch(_) {}
+
+  // Method 2: detect screen mirroring via window.screen vs document metrics (re-check every 5s)
+  setInterval(() => {
+    if (submitted) return;
+    try {
+      // Mirrored / shared screens often have screen.availWidth !== window.innerWidth after maximise in fullscreen
+      const ratio = window.devicePixelRatio || 1;
+      if (ratio && ratio < 0.75) logViolation('screen_sharing', 'Unusual device pixel ratio (' + ratio + ') — possible remote viewer');
+      // Screen.isExtended (Chromium, behind Window Management API)
+      if (typeof screen !== 'undefined' && typeof screen.isExtended === 'boolean' && screen.isExtended) {
+        logViolation('screen_sharing', 'Multiple / extended displays detected');
+      }
+    } catch(_) {}
+  }, 5000);
+}
+
+// ---- 8. Remote access (RDP / AnyDesk / TeamViewer) heuristics ----
+if (violCheck('remote_access_block')) {
+  // Heuristic 1: colour depth — RDP sessions often run at 16 or 24 bits instead of 32
+  try {
+    if (screen && screen.colorDepth && screen.colorDepth < 24) {
+      logViolation('remote_access', 'Low colour depth (' + screen.colorDepth + ') — possible remote session');
+    }
+  } catch(_) {}
+  // Heuristic 2: pointer event latency — remote sessions have higher latency variance
+  let lastMove = 0, laggySamples = 0;
+  document.addEventListener('pointermove', e => {
+    const now = performance.now();
+    if (lastMove && (now - lastMove) > 250) laggySamples++;
+    lastMove = now;
+    if (laggySamples >= 15 && !submitted) {
+      laggySamples = -9999; // one-shot
+      logViolation('remote_access', 'High pointer latency pattern — possible remote desktop');
+    }
+  }, {passive: true, capture: true});
+  // Heuristic 3: hardware concurrency + memory — virtualised remote desktops often report 1 core
+  try {
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 1) {
+      logViolation('remote_access', 'hardwareConcurrency=' + navigator.hardwareConcurrency + ' — possible VM / remote');
+    }
+  } catch(_) {}
+}
+
+// ---- 9. CSP meta injection (block external iframes/scripts from extensions where possible) ----
+(function injectCSP(){
+  try {
+    if (!violCheck('extension_overlay_block')) return;
+    // Can only add hints via meta; real CSP is server-side. Best-effort.
+    const m = document.createElement('meta');
+    m.httpEquiv = 'Content-Security-Policy';
+    m.content = "frame-src 'self' blob: data:; child-src 'self' blob: data:;";
+    document.head.appendChild(m);
+  } catch(_) {}
+})();
+
 // ------ Future-proof checks ------
 if (violCheck('second_display')) {
   // Second display detection (experimental) — warn if window.screen.width mismatches.

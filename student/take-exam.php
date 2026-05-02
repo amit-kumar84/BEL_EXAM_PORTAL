@@ -87,6 +87,21 @@ $PAGE_TITLE = 'Exam in Progress';
 [data-lang-text] { display:inline; }
 [data-lang-text].lang-hidden { display:none !important; }
 .q-box h4[data-hi-missing="1"] .hi-warn { display:inline-block; font-size:12px; color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:3px; margin-left:6px; }
+
+/* Student info card — right sidebar top */
+.student-info-card { background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; overflow:hidden; box-shadow:0 1px 2px rgba(15,23,42,.06); }
+.student-info-card .sic-head { background:#0f172a; color:#fde68a; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:6px 10px; border-bottom:2px solid #FF9933; }
+.student-info-card .sic-body { display:flex; gap:10px; padding:10px; align-items:flex-start; }
+.student-info-card .sic-photo-wrap { flex:0 0 auto; }
+.student-info-card .sic-photo { width:62px; height:78px; object-fit:cover; border:1px solid #94a3b8; border-radius:3px; background:#e2e8f0; display:block; }
+.student-info-card .sic-photo-ph { display:flex; align-items:center; justify-content:center; color:#64748b; font-size:28px; }
+.student-info-card .sic-meta { flex:1 1 auto; min-width:0; }
+.student-info-card .sic-name { font-weight:700; font-size:13px; color:#0f172a; line-height:1.2; margin-bottom:4px; word-break:break-word; }
+.student-info-card .sic-row { display:flex; gap:6px; font-size:11.5px; line-height:1.4; padding:1px 0; border-bottom:1px dashed #e2e8f0; }
+.student-info-card .sic-row:last-child { border-bottom:0; }
+.student-info-card .sic-k { color:#64748b; font-weight:600; min-width:56px; }
+.student-info-card .sic-v { color:#0f172a; font-weight:600; flex:1; word-break:break-word; }
+.student-info-card .sic-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#fef3c7; color:#92400e; padding:0 6px; border-radius:3px; font-size:11px; }
 </style>
 </head>
 <body class="exam-wrap" data-lang="en">
@@ -211,6 +226,35 @@ $PAGE_TITLE = 'Exam in Progress';
     <?php endforeach; ?>
   </div>
   <aside class="exam-side">
+    <div class="student-info-card mb-3" data-testid="exam-student-info-card">
+      <div class="sic-head">
+        <span data-lang-text="en">Candidate</span>
+        <span data-lang-text="hi" class="lang-hidden">अभ्यर्थी</span>
+      </div>
+      <div class="sic-body">
+        <div class="sic-photo-wrap">
+          <?php if (!empty($u['photo_path'])): ?>
+            <img src="<?= h(url($u['photo_path'])) ?>" alt="photo" class="sic-photo" data-testid="exam-student-photo">
+          <?php else: ?>
+            <div class="sic-photo sic-photo-ph" data-testid="exam-student-photo-ph">
+              <i class="fas fa-user"></i>
+            </div>
+          <?php endif; ?>
+        </div>
+        <div class="sic-meta">
+          <div class="sic-name" data-testid="exam-student-name"><?= h($u['name']) ?></div>
+          <div class="sic-row"><span class="sic-k">
+            <span data-lang-text="en">Roll</span><span data-lang-text="hi" class="lang-hidden">रोल</span>
+          </span><span class="sic-v" data-testid="exam-student-roll"><?= h($u['roll_number'] ?? '-') ?></span></div>
+          <div class="sic-row"><span class="sic-k">
+            <span data-lang-text="en">DOB</span><span data-lang-text="hi" class="lang-hidden">जन्मतिथि</span>
+          </span><span class="sic-v" data-testid="exam-student-dob"><?= h($u['dob'] ? date('d-m-Y', strtotime($u['dob'])) : '-') ?></span></div>
+          <div class="sic-row"><span class="sic-k">
+            <span data-lang-text="en">Exam Code</span><span data-lang-text="hi" class="lang-hidden">परीक्षा कोड</span>
+          </span><span class="sic-v sic-code" data-testid="exam-code-badge"><?= h($exam['exam_code'] ?? ('#'.$exam['id'])) ?></span></div>
+        </div>
+      </div>
+    </div>
     <div class="mb-3 bg-white p-2 text-center border">
       <video id="cam" autoplay muted playsinline style="width:200px; height:150px; background:#0f172a; object-fit:cover; border-radius:3px"></video>
     </div>
