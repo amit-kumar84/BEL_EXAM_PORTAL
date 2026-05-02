@@ -1,0 +1,6 @@
+question_type,question,option1,option2,option3,option4,correct,marks,negative
+multi_select,Which of the following are programming languages? (Select all that apply),Python,Table,Java,Chair,1|3,2,0.5
+multi_select,Which are renewable energy sources? (Select all that apply),Solar Energy,Coal,Wind Energy,Nuclear Energy,1|3,2,0.5
+multi_select,Which of these are Indian states? (Select all that apply),Kerala,Mumbai,Tamil Nadu,London,1|3,2,0.5
+multi_select,Which are protocols used in networking? (Select all that apply),HTTP,USB,TCP,HDMI,1|3,2,0.5
+multi_select,Which of the following are databases? (Select all that apply),MySQL,Facebook,MongoDB,Twitter,1|3,2,0.5

@@ -1,0 +1,6 @@
+question_type,question,option1,option2,option3,option4,correct,marks,negative
+true_false,The Earth revolves around the Sun.,True,False,,,true,1,0.25
+true_false,India is the smallest country in the world.,True,False,,,false,1,0.25
+true_false,Water boils at 100 degrees Celsius at sea level.,True,False,,,true,1,0.25
+true_false,Python is a programming language.,True,False,,,true,1,0.25
+true_false,The Pacific Ocean is the smallest ocean.,True,False,,,false,1,0.25

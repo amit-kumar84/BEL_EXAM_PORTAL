@@ -1,0 +1,126 @@
+question_type,question,option1,option2,option3,option4,correct,marks,negative
+mcq,What does SSC stand for,Staff Selection Commission,State Security Council,School Service Committee,Senior Staff Cell,1,1,0.25
+mcq,What is the full form of GD in SSC GD,General Duty,General Department,Group Division,Grade Duty,1,1,0.25
+mcq,Which is the capital of India,Mumbai,New Delhi,Kolkata,Chennai,2,1,0.25
+mcq,Which river is known as the Ganga of South India,Godavari,Narmada,Krishna,Kaveri,4,1,0.25
+mcq,Which planet is called the Red Planet,Venus,Mars,Jupiter,Saturn,2,1,0.25
+mcq,What is the SI unit of force,Newton,Joule,Watt,Pascal,1,1,0.25
+mcq,Which is the largest mammal,Elephant,Blue whale,Giraffe,Hippopotamus,2,1,0.25
+mcq,Who wrote the Indian national anthem,Bankim Chandra Chatterjee,Rabindranath Tagore,Subhash Chandra Bose,Mahatma Gandhi,2,1,0.25
+mcq,What is the national animal of India,Lion,Tiger,Elephant,Peacock,2,1,0.25
+mcq,Which gas do plants absorb,Carbon dioxide,Oxygen,Nitrogen,Hydrogen,1,1,0.25
+multi_select,Select the constitutional organs of India,President,Parliament,Gram Sabha,Supreme Court,1|2|4,1,0.25
+multi_select,Select the Union Territories of India,Goa,Delhi,Jammu and Kashmir,Rajasthan,2|3,1,0.25
+multi_select,Select the fundamental rights,Right to Equality,Right to Freedom,Right to Property,Right against Exploitation,1|2|4,1,0.25
+multi_select,Select the planets in the solar system,Moon,Mars,Earth,Sun,2|3,1,0.25
+multi_select,Select the Indian states,Kerala,Puducherry,Assam,Ladakh,1|3,1,0.25
+mcq,What is the boiling point of water at sea level,50 degree C,100 degree C,75 degree C,90 degree C,2,1,0.25
+mcq,Who is known as the father of the nation in India,Jawaharlal Nehru,Sardar Patel,Mahatma Gandhi,Bhagat Singh,3,1,0.25
+mcq,Which continent is India in,Europe,Asia,Africa,Australia,2,1,0.25
+mcq,What is the smallest prime number,0,1,2,3,3,1,0.25
+mcq,Which instrument measures temperature,Thermometer,Barometer,Speedometer,Altimeter,1,1,0.25
+true_false,The sun rises in the east,,,,,True,1,0.25
+true_false,Water freezes at 0 degree C,,,,,True,1,0.25
+true_false,The Earth is flat,,,,,False,1,0.25
+true_false,India got independence in 1947,,,,,True,1,0.25
+true_false,The capital of Maharashtra is Mumbai,,,,,True,1,0.25
+short_answer,What is the national flower of India,,,,,Lotus,1,0.25
+short_answer,What is the capital of Uttar Pradesh,,,,,Lucknow,1,0.25
+short_answer,Who is known as the Iron Man of India,,,,,Sardar Patel,1,0.25
+short_answer,Which festival is known as the festival of lights,,,,,Diwali,1,0.25
+short_answer,What is the national bird of India,,,,,Peacock,1,0.25
+numeric,How many states are there in India,,,,,28,1,0.25
+numeric,How many union territories are there in India,,,,,8,1,0.25
+numeric,What is 12 multiplied by 5,,,,,60,1,0.25
+numeric,How many days are there in a leap year,,,,,366,1,0.25
+numeric,What is 100 divided by 4,,,,,25,1,0.25
+mcq,Which is the longest river in India,Godavari,Ganga,Yamuna,Brahmaputra,2,1,0.25
+mcq,Which is the largest state in India by area,Rajasthan,UP,MP,Gujarat,1,1,0.25
+mcq,What is the currency of Japan,Yuan,Yen,Won,Dollar,2,1,0.25
+mcq,Which of these is a day after Sunday,Monday,Friday,Saturday,Thursday,1,1,0.25
+mcq,Who discovered gravity,Newton,Edison,Einstein,Galileo,1,1,0.25
+mcq,What is the main source of energy for Earth,Moon,Sun,Stars,Winds,2,1,0.25
+mcq,Which is the largest ocean,Atlantic Ocean,Indian Ocean,Arctic Ocean,Pacific Ocean,4,1,0.25
+mcq,How many continents are there,5,6,7,8,3,1,0.25
+mcq,Which is the hard outer covering of Earth,Crust,Mantle,Core,Shell,1,1,0.25
+mcq,Which is the largest desert in the world,Sahara,Gobi,Thar,Kalahari,1,1,0.25
+multi_select,Select the emergency services in India,Police,Fire Brigade,Ambulance,Post Office,1|2|3,1,0.25
+multi_select,Select the Union symbols of India,National Flag,National Emblem,National Anthem,National Bird,1|2|3,1,0.25
+multi_select,Select the metals,Gold,Iron,Wood,Copper,1|2|4,1,0.25
+multi_select,Select the states in North India,Haryana,Kerala,Punjab,Tamil Nadu,1|3,1,0.25
+multi_select,Select the prime numbers,2,4,5,9,1|3,1,0.25
+true_false,The moon has its own light,,,,,False,1,0.25
+true_false,Black soil is good for cotton cultivation,,,,,True,1,0.25
+true_false,The Red Fort is in Delhi,,,,,True,1,0.25
+true_false,The Himalayas are in Africa,,,,,False,1,0.25
+true_false,ATP is the currency of India,,,,,False,1,0.25
+short_answer,What is the chemical symbol of water,,,,,H2O,1,0.25
+short_answer,Name the largest planet in the solar system,,,,,Jupiter,1,0.25
+short_answer,What is the capital of Rajasthan,,,,,Jaipur,1,0.25
+short_answer,Which month has 28 days in a normal year,,,,,February,1,0.25
+short_answer,What is the color of the sky on a clear day,,,,,Blue,1,0.25
+numeric,What is 7 plus 8,,,,,15,1,0.25
+numeric,What is 9 times 9,,,,,81,1,0.25
+numeric,How many sides does a triangle have,,,,,3,1,0.25
+numeric,How many months are there in a year,,,,,12,1,0.25
+numeric,What is 50 minus 18,,,,,32,1,0.25
+mcq,Which animal is known as the ship of the desert,Camel,Horse,Elephant,Dog,1,1,0.25
+mcq,Which is the fastest land animal,Cheetah,Lion,Tiger,Leopard,1,1,0.25
+mcq,Which is the smallest country in the world,Vatican City,Nepal,Bhutan,Monaco,1,1,0.25
+mcq,What is the national game of India,Hockey,Cricket,Football,Kabaddi,1,1,0.25
+mcq,Which organ pumps blood in the human body,Brain,Lungs,Heart,Liver,3,1,0.25
+mcq,Which is a renewable source of energy,Coal,Petroleum,Solar energy,Diesel,3,1,0.25
+mcq,Which organ helps us breathe,Heart,Brain,Lungs,Stomach,3,1,0.25
+mcq,What is the shape of a football,Square,Oval,Rectangle,Triangle,2,1,0.25
+mcq,Which month comes after March,April,May,June,July,1,1,0.25
+mcq,Which is the first month of the year,January,February,March,April,1,1,0.25
+multi_select,Select the colors of the Indian flag,Orange,White,Green,Blue,1|2|3,1,0.25
+multi_select,Select the organs of the human digestive system,Stomach,Heart,Intestine,Brain,1|3,1,0.25
+multi_select,Select the vowels in English,A,E,I,B,1|2|3,1,0.25
+multi_select,Select the metal objects,Spoon,Table,Pen,Iron rod,1|2|4,1,0.25
+multi_select,Select the tools used in computer security,Firewall,Antivirus,Stapler,VPN,1|2|4,1,0.25
+true_false,The Taj Mahal is in Agra,,,,,True,1,0.25
+true_false,Python is a type of snake and also a programming language,,,,,True,1,0.25
+true_false,The Earth revolves around the Moon,,,,,False,1,0.25
+true_false,Water is a gas at room temperature,,,,,False,1,0.25
+true_false,The Ganga is a river in India,,,,,True,1,0.25
+short_answer,Who was the first Prime Minister of India,,,,,Jawaharlal Nehru,1,0.25
+short_answer,What is the capital of Punjab,,,,,Chandigarh,1,0.25
+short_answer,Which organ is used for seeing,,,,,Eyes,1,0.25
+short_answer,What is the opposite of night,,,,,Day,1,0.25
+short_answer,What is the national fruit of India,,,,,Mango,1,0.25
+numeric,How many hours are there in a day,,,,,24,1,0.25
+numeric,How many minutes are there in an hour,,,,,60,1,0.25
+numeric,What is 3 multiplied by 7,,,,,21,1,0.25
+numeric,What is 144 divided by 12,,,,,12,1,0.25
+numeric,How many players are there in a cricket team,,,,,11,1,0.25
+mcq,Which is the largest bone in the human body,Femur,Radius,Tibia,Humerus,1,1,0.25
+mcq,Which is the national tree of India,Banyan,Neem,Peepal,Mango,1,1,0.25
+mcq,Which of these is a mammal,Crocodile,Whale,Shark,Frog,2,1,0.25
+mcq,Which one is a primary color,Orange,Green,Red,Pink,3,1,0.25
+mcq,What is the color of the Indian national flag stripe at the top,Green,White,Saffron,Blue,3,1,0.25
+mcq,Which is the largest internal organ in the human body,Heart,Liver,Lungs,Brain,2,1,0.25
+mcq,What is the longest railway platform in India,Sivaji,Mumbai Central,Chhatrapati Shivaji Maharaj Terminus,New Delhi,3,1,0.25
+mcq,Which is a safe practice for exam preparation,Daily revision and mock tests,Copying answers,Skipping sleep completely,Ignoring notes,1,1,0.25
+mcq,Which of these is a programming language,Python,Photoshop,Windows,Excel,1,1,0.25
+mcq,Which is the coldest season,Winter,Summer,Rainy,Spring,1,1,0.25
+multi_select,Select the heavy vehicles,Truck,Bicycle,Bus,Motorcycle,1|3,1,0.25
+multi_select,Select the Indian metro cities,Delhi,Mumbai,Shimla,Bengaluru,1|2|4,1,0.25
+multi_select,Select the fruits,Apple,Potato,Banana,Carrot,1|3,1,0.25
+multi_select,Select the water bodies,River,Lake,Mountain,Sea,1|2|4,1,0.25
+multi_select,Select the sports,Cricket,Volleyball,Chair,Table,1|2,1,0.25
+true_false,The Earth has one moon,,,,,True,1,0.25
+true_false,The Indian flag has four colors,,,,,False,1,0.25
+true_false,Salt is sweet,,,,,False,1,0.25
+true_false,The sun is a star,,,,,True,1,0.25
+true_false,Books help in learning,,,,,True,1,0.25
+short_answer,What is the capital of Karnataka,,,,,Bengaluru,1,0.25
+short_answer,Who wrote the Ramayana,,,,,Valmiki,1,0.25
+short_answer,What is the plural of child,,,,,Children,1,0.25
+short_answer,What is the largest organ of the human body,,,,,Skin,1,0.25
+short_answer,What is the color of milk,,,,,White,1,0.25
+numeric,What is 20 plus 30,,,,,50,1,0.25
+numeric,What is 100 minus 45,,,,,55,1,0.25
+numeric,How many letters are there in the English alphabet,,,,,26,1,0.25
+numeric,What is 11 times 2,,,,,22,1,0.25
+numeric,How many legs does an insect have,,,,,6,1,0.25

@@ -1,0 +1,6 @@
+question_type,question,option1,option2,option3,option4,correct,marks,negative
+numeric,What is 25 + 15?,,,,,40,1,0
+numeric,Calculate: 144 / 12 = ?,,,,,12,1,0
+numeric,What is 5^2 (5 raised to the power of 2)?,,,,,25,1,0
+numeric,If x = 10, what is 2x + 5?,,,,,25,1,0
+numeric,What is the square root of 169?,,,,,13,1,0

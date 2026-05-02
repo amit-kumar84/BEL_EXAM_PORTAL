@@ -1,0 +1,6 @@
+RewriteEngine On
+# Prevent direct listing of includes/uploads
+<FilesMatch "\.(sql|log|md)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes

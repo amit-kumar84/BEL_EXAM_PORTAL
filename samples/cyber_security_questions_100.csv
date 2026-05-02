@@ -1,0 +1,113 @@
+question,option1,option2,option3,option4,correct,marks,negative
+What does CIA stand for in cybersecurity,Confidentiality Integrity Availability,Control Input Access,Client Internet Access,Critical Information Alert,1,1,0.25
+Which is a strong password practice,Use your name and birthdate,Reuse one password everywhere,Use a long unique passphrase,Share it with trusted friends,3,1,0.25
+What is phishing,Fake messages that trick users into revealing data,Hardware failure in a server,Encrypting files for backup,Scanning code for bugs,1,1,0.25
+Which protocol is secure for web browsing,HTTP,FTP,SMTP,HTTPS,4,1,0.25
+What is malware,Any software that is harmful or unwanted,A software update tool,An antivirus license,A password manager,1,1,0.25
+What does 2FA mean,Two file access,Two factor authentication,Total firewall access,Trusted firmware allowance,2,1,0.25
+Which device filters network traffic,Switch,Router,Firewall,Hub,3,1,0.25
+What is ransomware,Software that locks data until payment is made,Software that cleans temp files,Software that speeds internet,Software that changes screen brightness,1,1,0.25
+What is social engineering,Using human tricks to get confidential information,Writing secure code only,Testing network speed,Backing up files,1,1,0.25
+Which is an example of encryption,Converting readable data into coded form,Deleting duplicate files,Renaming folders,Compressing images,1,1,0.25
+What is a phishing email,An email that pretends to be from a trusted source,A backup email sent to admins,A system log report,An encrypted attachment only,1,1,0.25
+Which one is a biometric factor,Fingerprint,Username,Security question,PIN code,1,1,0.25
+What is a VPN used for,To create a secure encrypted tunnel over a network,To increase monitor brightness,To remove viruses automatically,To format hard drives,1,1,0.25
+Which attack floods a system with traffic,DDoS,SQL backup,Patch management,Port scanning,1,1,0.25
+What is a patch,An update that fixes security or software issues,A type of malware,A login certificate,A network cable,1,1,0.25
+Which is best for storing passwords,Text file on desktop,Password manager,Sticky note,Shared spreadsheet,2,1,0.25
+What does antivirus software detect,Malicious code and threats,Printer errors only,Weather changes,Keyboard layout,1,1,0.25
+What is a zero day vulnerability,A flaw unknown to the vendor and often unpatched,A backup file format,A password reset link,A secure login method,1,1,0.25
+Which is a common sign of malware,Slow performance and strange popups,Brighter screen colors,Higher volume output,Faster internet always,1,1,0.25
+What is the purpose of a backup,To copy data for recovery if lost,To hide the screen from users,To speed up typing,To compress video only,1,1,0.25
+What is SQL injection,An attack that inserts malicious SQL into input fields,A firewall rule update,A secure coding pattern,A login token,1,1,0.25
+Which should you avoid opening,Unexpected email attachments from unknown senders,Messages from IT support,Official policy documents,Calendar reminders,1,1,0.25
+What is a brute force attack,Trying many passwords until one works,Encrypting data with strong keys,Installing software updates,Changing account settings,1,1,0.25
+What is access control,Limiting who can use resources,Increasing keyboard speed,Compressing data files,Improving screen resolution,1,1,0.25
+Which principle gives users only needed access,Least privilege,Open access,Full trust,Maximum exposure,1,1,0.25
+What is a firewall rule,An instruction that allows or blocks traffic,A backup schedule,A password hint,A printer driver,1,1,0.25
+What is an incident response plan,A process for handling security incidents,A plan for office seating,A document for payroll,A method for faster browsing,1,1,0.25
+Which is safer for login credentials,Sharing credentials over chat,Using unique credentials per account,Writing passwords on paper,Using public Wi Fi,2,1,0.25
+What is a hash,Fixed length output from data used for integrity,An encrypted chat app,A router setting,A file permission tool,1,1,0.25
+Which protects data while stored at rest,Disk encryption,Screen saver,Email signature,Volume control,1,1,0.25
+What is malware removal,Process of deleting or quarantining malicious software,Changing the desktop background,Increasing CPU speed,Renaming user profiles,1,1,0.25
+Which port is commonly used for HTTPS,21,25,80,443,4,1,0.25
+What is a secure website indicator,A padlock in the browser address bar,Large font size only,Blue page background,Pop up ads,1,1,0.25
+What is spear phishing,Targeted phishing aimed at a specific person or group,Network cable testing,Password encryption,File compression,1,1,0.25
+Which is a common type of authentication something you know,Password,Fingerprint,Smart card,Face scan,1,1,0.25
+Which is a common type of authentication something you have,Hardware token,Password,Security question,Username,1,1,0.25
+Which is a common type of authentication something you are,Fingerprint,Password,OTP code,Email address,1,1,0.25
+What does MFA stand for,Multi file access,Multi factor authentication,Main firewall alert,Managed file archive,2,1,0.25
+What is phishing bait,False message or link designed to lure victims,A secure website certificate,A backup image,A router cache,1,1,0.25
+Which practice helps prevent data loss,Regular backups,Using weak passwords,Disabling updates,Sharing credentials,1,1,0.25
+What is a certificate in HTTPS,A digital file that verifies website identity,A login password,A router antenna,A firewall log,1,1,0.25
+What does HTTPS provide,Encrypted web communication,Offline file storage,Email spam filtering,Keyboard encryption,1,1,0.25
+Which attack steals session data,Session hijacking,File shredding,Data compression,CPU throttling,1,1,0.25
+What is a security policy,A set of rules for protecting systems,A calendar reminder,A file rename rule,A software theme,1,1,0.25
+What is a worm,A self replicating malware that spreads across networks,A backup drive,A secure update,A password generator,1,1,0.25
+What is a Trojan,Malware disguised as legitimate software,A firewall alert,A browser cookie,A secure token,1,1,0.25
+What is spyware,Software that secretly monitors user activity,Software for video editing,Software for file backup,Software for printing,1,1,0.25
+Which tool scans for vulnerabilities,Vulnerability scanner,Text editor,Media player,Image viewer,1,1,0.25
+What is a security audit,Review of systems and controls for risk,A task to change wallpaper,A network cable check only,A password reset method,1,1,0.25
+Which is safer on public Wi Fi,Using a VPN,Disabling antivirus,Sharing files openly,Turning off encryption,1,1,0.25
+What is data exfiltration,Unauthorized transfer of data out of a system,Backup to cloud,File compression,Disk formatting,1,1,0.25
+What is key logging,Recording keystrokes without permission,Changing keyboard layout,Encrypting files,Updating drivers,1,1,0.25
+What is an OTP,One time password,Online transfer protocol,Open threat policy,Only trusted process,1,1,0.25
+Which should be used to verify software integrity,Digital signature,Screen lock,Wi Fi name,Monitor size,1,1,0.25
+What is a secure coding practice,Validate all user input,Ignore errors,Store passwords in plain text,Disable logs,1,1,0.25
+What is a buffer overflow,Writing more data than a buffer can hold,Running a backup job,Using strong encryption,Changing a password,1,1,0.25
+Which language is often used for web security checks,Python,Paint,Excel,PowerPoint,1,1,0.25
+What is a security token,An item used to prove identity,An email template,A network cable,A browser tab,1,1,0.25
+What does IAM stand for,Identity and access management,Internet access module,Internal audit monitor,Integrated antivirus method,1,1,0.25
+What is log monitoring,Reviewing system logs for suspicious activity,Deleting all logs daily,Changing file names,Compressing archives,1,1,0.25
+Which is a safe way to dispose of confidential data,Securely wipe or shred it,Leave it in recycle bin,Send it by email,Store it on a shared drive,1,1,0.25
+What is privilege escalation,Gaining higher permissions than allowed,Changing monitor resolution,Running antivirus scan,Backing up user files,1,1,0.25
+What is a man in the middle attack,Intercepting communication between two parties,Downloading updates,Scanning for viruses,Creating backups,1,1,0.25
+Which control helps detect unauthorized access,Audit logs,Screen wallpaper,Volume control,Printer queue,1,1,0.25
+What is a secure password length recommendation,At least 12 characters,Exactly 4 characters,Only numbers,Same as username,1,1,0.25
+What is a public key used for,Encrypting or verifying data in asymmetric cryptography,Opening folders,Viewing images,Formatting disks,1,1,0.25
+What is a private key used for,Decrypting data or signing in asymmetric cryptography,Sharing with everyone,Resetting printers,Changing browser theme,1,1,0.25
+What is symmetric encryption,Same key is used for encrypting and decrypting,Two different keys are always used,No key is required,A key is stored in email,1,1,0.25
+What is asymmetric encryption,Uses a public key and a private key,Uses no key,Uses same key only,Uses password only,1,1,0.25
+What is the purpose of hashing in passwords,Store a one way representation not plain text,Make passwords shorter only,Send password by email,Display the password clearly,1,1,0.25
+What is a salt in password storage,Random data added before hashing to improve security,A password hint,A backup code,A login banner,1,1,0.25
+What is data integrity,Assurance that data is not altered without authorization,Data stored on two monitors,High speed file transfer,Encrypted wallpaper,1,1,0.25
+What is availability in CIA triad,Systems and data are accessible when needed,Files are always hidden,Passwords are never changed,Logs are deleted,1,1,0.25
+What is confidentiality in CIA triad,Only authorized users can access data,Data is duplicated everywhere,Passwords are shared widely,Servers are always offline,1,1,0.25
+Which practice helps reduce phishing risk,Verify sender and links before clicking,Open every attachment quickly,Use the same password everywhere,Disable multi factor authentication,1,1,0.25
+What is a red team in security,A team that simulates attacks to test defenses,A backup support team,An antivirus vendor,A hardware repair team,1,1,0.25
+What is a blue team in security,A defensive team that protects systems,A team that writes malware,A group that sells devices,A team that formats servers,1,1,0.25
+What is a security vulnerability,Weakness that can be exploited,Strong password policy,Encrypted file name,Approved software,1,1,0.25
+What is penetration testing,Simulated attack to find security weaknesses,Changing user avatars,Installing printer drivers,Compressing logs,1,1,0.25
+What is a VPN tunnel,Encrypted pathway between endpoints,A public chat room,A file rename process,An email filter,1,1,0.25
+What is the role of updates,Fix bugs and patch vulnerabilities,Decrease security,Delete logs,Share passwords,1,1,0.25
+What is the safest response to a suspicious link,Do not click and verify first,Forward it to everyone,Enter your password immediately,Disable firewall,1,1,0.25
+What is account locking used for,Prevent repeated unauthorized login attempts,Make passwords visible,Increase screen timeout only,Change browser history,1,1,0.25
+What is phishing on SMS called,Smishing,Spamming,Sniffing,Shadowing,1,1,0.25
+What is phishing on voice calls called,Vishing,Hashing,Routing,Tokenizing,1,1,0.25
+What is a secure file transfer protocol,SFTP,HTTP,SMTP,Telnet,1,1,0.25
+What is Telnet considered,An insecure remote access protocol,A file backup format,A password manager,A certificate type,1,1,0.25
+What is SSH used for,Secure remote login and command execution,Viewing images,Editing audio,Printing reports,1,1,0.25
+What is network segmentation,Dividing a network into smaller isolated parts,Combining all networks into one,Deleting switches,Turning off encryption,1,1,0.25
+What is an IDS,Intrusion detection system,Internet data storage,Internal disk scanner,Identity delivery service,1,1,0.25
+What is an IPS,Intrusion prevention system,Internet password service,Internal print server,Identity policy store,1,1,0.25
+What is a secure email practice,Check sender and avoid unknown attachments,Reply with credentials,Use weak passwords,Forward confidential data freely,1,1,0.25
+What is endpoint security,Protection of devices like laptops and phones,Protection of only routers,Protection of only keyboards,Protection of only printers,1,1,0.25
+What is mobile device management,Tools to control and secure mobile devices,A type of keyboard layout,A backup only feature,A browser extension,1,1,0.25
+What is ransomware recovery best practice,Restore from clean backups,Pay immediately always,Delete the OS,Disable all logs,1,1,0.25
+What is a security control,A safeguard used to reduce risk,A game level,A wallpaper setting,A browser bookmark,1,1,0.25
+What is the purpose of least privilege,Limit access to what is necessary,Give everyone admin rights,Remove passwords,Ignore security,1,1,0.25
+What is threat intelligence,Information about current and emerging threats,Information about screen size,Data about printer ink,Details of file names only,1,1,0.25
+What is cyber hygiene,Good security habits and practices,Computer cleaning only,Backup software name,Email formatting style,1,1,0.25
+What is a secure default setting,The safest setting enabled by default,The fastest CPU option,The brightest display option,The loudest audio option,1,1,0.25
+What is user awareness training,Educating users about security risks,Teaching typing speed only,Updating wallpaper daily,Replacing hardware monthly,1,1,0.25
+What is data leakage,Unauthorized exposure of sensitive information,Loss of battery power,Increase in internet speed,Compression of files,1,1,0.25
+What is an authentication failure,Login attempt not verified correctly,Successful backup,Encrypted archive,Firewall update,1,1,0.25
+What is a secure browser habit,Keep browser updated and use trusted sites,Use random unknown extensions,Disable updates forever,Save passwords in plain text,1,1,0.25
+What is whitelisting,Allowing only approved applications or sites,Blocking all internet access forever,Deleting browser cache,Changing login page,1,1,0.25
+What is blacklisting,Blocking known malicious applications or sites,Allowing every file automatically,Turning off antivirus,Sharing admin passwords,1,1,0.25
+What is a security token code,Code used to verify identity or authorize access,Code used to change wallpaper,Code used to print documents,Code used to rename files,1,1,0.25
+What is risk assessment,Identifying and evaluating security risks,Changing all usernames,Deleting history daily,Installing a new monitor,1,1,0.25
+What is business continuity,Ability to keep critical operations running during disruption,Only working on weekends,Backing up one folder,Using public Wi Fi,1,1,0.25
+What is disaster recovery,Process of restoring systems after major disruption,Process of changing themes,Process of formatting laptops,Process of renaming accounts,1,1,0.25
+What is secure disposal of hard drives,Physical destruction or certified wiping,Leaving drives in drawers,Posting them online,Sharing them with strangers,1,1,0.25
+What is the main goal of cybersecurity,Protect systems networks and data from attacks,Increase screen brightness,Reduce typing effort,Make files larger,1,1,0.25

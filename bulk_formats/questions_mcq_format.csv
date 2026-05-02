@@ -1,0 +1,6 @@
+question_type,question,question_hi,option1,option1_hi,option2,option2_hi,option3,option3_hi,option4,option4_hi,correct,marks,negative
+mcq,What is the capital of India?,भारत की राजधानी क्या है?,Mumbai,मुंबई,Delhi,दिल्ली,Bangalore,बेंगलुरु,Chennai,चेन्नई,2,1,0.25
+mcq,Which planet is closest to the sun?,सूर्य के सबसे निकट कौन सा ग्रह है?,Venus,शुक्र,Mercury,बुध,Earth,पृथ्वी,Mars,मंगल,2,1,0.25
+mcq,What is the chemical symbol for Gold?,स्वर्ण का रासायनिक प्रतीक क्या है?,Go,,Au,,Gd,,Ag,,2,1,0.25
+mcq,Which is the largest ocean in the world?,विश्व का सबसे बड़ा महासागर कौन सा है?,Arctic Ocean,आर्कटिक महासागर,Indian Ocean,हिंद महासागर,Pacific Ocean,प्रशांत महासागर,Atlantic Ocean,अटलांटिक महासागर,3,1,0.25
+mcq,Who was the first President of India?,भारत के प्रथम राष्ट्रपति कौन थे?,Rajendra Prasad,राजेंद्र प्रसाद,Dr. B.R. Ambedkar,डॉ. बी.आर. अंबेडकर,Jawaharlal Nehru,जवाहरलाल नेहरू,Lal Bahadur Shastri,लाल बहादुर शास्त्री,1,1,0.25

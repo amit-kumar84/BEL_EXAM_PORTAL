@@ -1,0 +1,4 @@
+    </div>
+  </main>
+</div>
+<?php require __DIR__ . '/../includes/footer.php'; ?>
