@@ -1,0 +1,64 @@
+{
+  "iteration": 1,
+  "test_date": "2026-01-02",
+  "environment": "Local Apache-style: PHP 8.2.30 + MariaDB 10.11 on 127.0.0.1:9081",
+  "total_tests": 20,
+  "passed": 20,
+  "failed": 0,
+  "test_credentials": {
+    "super_admin": {"email": "admin@belkotdwar.in", "password": "Admin@123"},
+    "regular_admin": {"email": "rakesh@belkotdwar.in", "password": "Rakesh@123"},
+    "student": {"roll": "BEL1001", "dob": "1998-04-12", "password": "Pass@123"},
+    "super_edit_verify_answer": "kotdwar"
+  },
+  "tests": [
+    {"id": "T01", "name": "schema.sql imports cleanly (12 tables, no errors)", "status": "PASS"},
+    {"id": "T02", "name": "Super admin login (email + Admin@123) → dashboard 200", "status": "PASS"},
+    {"id": "T03", "name": "admin/dashboard.php loads", "status": "PASS"},
+    {"id": "T04", "name": "admin/students.php loads", "status": "PASS"},
+    {"id": "T05", "name": "admin/exams.php loads", "status": "PASS"},
+    {"id": "T06", "name": "admin/live-monitor.php loads", "status": "PASS"},
+    {"id": "T07", "name": "admin/results.php loads", "status": "PASS"},
+    {"id": "T08", "name": "admin/admins.php loads + renders Edit (super-edit-btn) + mask lock-icon + Reset buttons", "status": "PASS"},
+    {"id": "T09", "name": "admin/trash.php loads", "status": "PASS"},
+    {"id": "T10", "name": "admin/logs.php loads", "status": "PASS"},
+    {"id": "T11", "name": "Super-Edit action denies wrong verification answer (shows 'incorrect' flash)", "status": "PASS"},
+    {"id": "T12", "name": "Super-Edit action with correct answer ('kotdwar') updates password → verified via password_verify()", "status": "PASS"},
+    {"id": "T13", "name": "Super admin password changed and restored successfully; ensureSuperAdmin() does not force-reset on re-login", "status": "PASS"},
+    {"id": "T14", "name": "Exam save with all 14 proctor toggles → violation_config JSON persisted correctly", "status": "PASS"},
+    {"id": "T15", "name": "Student login (roll+dob+password)", "status": "PASS"},
+    {"id": "T16", "name": "student/dashboard.php shows assigned exam", "status": "PASS"},
+    {"id": "T17", "name": "student/take-exam.php?exam_id=1 renders + fs-overlay visible + candidate card populated (name/roll/dob/exam_code)", "status": "PASS"},
+    {"id": "T18", "name": "student/instructions.php + student/results.php load", "status": "PASS"},
+    {"id": "T19", "name": "api/violation.php POST logs row in violations table", "status": "PASS"},
+    {"id": "T20", "name": "api/save-answer.php POST persists JSON answer in attempt_answers", "status": "PASS"}
+  ],
+  "db_row_counts_after_test_run": {
+    "users_admin": 2,
+    "users_student": 5,
+    "exams": 3,
+    "questions": 3,
+    "attempts": 5,
+    "attempt_answers": 3,
+    "violations": 6,
+    "admin_activity_logs": 7
+  },
+  "lint": {
+    "php_lint_all_modified_files": "PASS",
+    "node_check_lockdown_js": "PASS"
+  },
+  "cleanup": {
+    "sql_files_before": ["schema.sql", "schema_upgrade.sql", "schema_upgrade_hindi.sql", "schema_upgrade_phase3.sql"],
+    "sql_files_after": ["schema.sql"],
+    "docs_moved_into_docs_folder": ["STRUCTURE_SUMMARY.md", "TESTING_REPORT.md"],
+    "htaccess_hardened": true
+  },
+  "known_limitations_browser_level": [
+    "F11 / Esc cannot be truly blocked on Firefox or Safari (no Keyboard Lock API) — 50ms auto re-enter is the fallback",
+    "Win+PrtSc saves screenshot directly to Pictures/Screenshots/ bypassing the clipboard wipe",
+    "Win+Shift+S (Snipping Tool) cannot be intercepted at the web layer",
+    "Third-party screenshot / screen-recording apps cannot be blocked from a browser",
+    "Phone camera photographing the monitor — not detectable"
+  ],
+  "recommended_next_step": "Scaffold an Electron desktop kiosk wrapper around the existing PHP portal to remove all browser-level limitations."
+}

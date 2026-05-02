@@ -95,7 +95,7 @@ htdocs/
 │
 ├── 💾 Database
 │   ├── schema.sql                    # Full database schema
-│   └── schema_upgrade.sql            # Migrations
+│   └── (removed — merged into schema.sql) 
 │
 ├── ⚙️ Setup Scripts
 │   ├── OFFLINE_SETUP.bat             # Windows setup

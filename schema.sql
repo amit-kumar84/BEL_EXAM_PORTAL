@@ -264,6 +264,6 @@ VALUES ('admin',
         'BEL Kotdwar Super Admin',
         'admin@belkotdwar.in',
         'superadmin',
-        '$2y$10$rLUYXqsA6Z5yrG1vQvQZruP0LhXh3x4fJOVt.bEEpJqqnl4ZsW2QW',
+        '$2y$10$p.sgOKAPyNNepDIq8LSTsuAsfyhwdjE4n9RrEMO0NfWAm.RkGKxQ6',
         1,
         NOW());

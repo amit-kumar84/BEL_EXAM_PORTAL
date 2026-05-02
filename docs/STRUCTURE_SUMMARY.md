@@ -115,7 +115,7 @@ htdocs/
 ├── forgot.php
 ├── .htaccess
 ├── schema.sql
-├── schema_upgrade.sql
+├── (removed — merged into schema.sql)
 ├── cleanup.bat                  ← Windows cleanup
 ├── cleanup.sh                   ← Linux cleanup
 ├── OFFLINE_SETUP.bat
