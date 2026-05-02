@@ -46,24 +46,71 @@ if ($_SERVER['REQUEST_METHOD']==='POST') { csrf_check();
       flash('Only super admin can reset admin passwords','error');
     } else {
       $tid = (int)$_POST['id'];
-      $pwd = trim($_POST['new_password'] ?? '');
-      if (strlen($pwd) < 6) {
-        flash('New password must be at least 6 characters','error');
-        redirect(url('admin/admins.php'));
-      }
+      $newName  = trim($_POST['new_name']  ?? '');
+      $newEmail = strtolower(trim($_POST['new_email'] ?? ''));
+      $newPwd   = trim($_POST['new_password'] ?? '');
       $t = db()->prepare('SELECT * FROM users WHERE id=? AND role="admin"'); $t->execute([$tid]); $u = $t->fetch();
-      if (!$u) { flash('Not found','error'); }
-      elseif ($u['is_super']) { flash('Super admin password is managed separately','error'); }
-      else {
-        $oldHash = $u['password_hash'];
-        $newHash = password_hash($pwd, PASSWORD_BCRYPT);
-        db()->prepare('UPDATE users SET password_hash=?, plain_password=? WHERE id=? AND role="admin"')
-          ->execute([$newHash, $pwd, $tid]);
-        $payload = ['table' => 'users', 'before' => ['id' => $tid, 'password_hash' => $oldHash], 'after' => ['id' => $tid, 'password_hash' => $newHash]];
-        log_admin_activity('admin_reset', 'Reset password for admin ' . $u['name'] . ' (' . $u['email'] . ')', $me, 'admin/admins.php', $payload);
-        flash('Password updated for ' . $u['name'] . ' (' . $u['email'] . ')', 'success');
+      if (!$u) { flash('Not found','error'); redirect(url('admin/admins.php')); }
+      if (!empty($u['is_super'])) { flash('Super admin is managed via the Edit button (requires verification).','error'); redirect(url('admin/admins.php')); }
+      if ($newName === '')  { flash('Name is required','error'); redirect(url('admin/admins.php')); }
+      if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) { flash('Valid email is required','error'); redirect(url('admin/admins.php')); }
+      // Uniqueness check (allow same email on the same row)
+      $dup = db()->prepare('SELECT id FROM users WHERE email=? AND id<>? LIMIT 1'); $dup->execute([$newEmail, $tid]);
+      if ($dup->fetch()) { flash('Email already used by another account','error'); redirect(url('admin/admins.php')); }
+      $oldHash = $u['password_hash'];
+      $newHash = $oldHash;
+      if ($newPwd !== '') {
+        if (strlen($newPwd) < 6) { flash('New password must be at least 6 characters','error'); redirect(url('admin/admins.php')); }
+        $newHash = password_hash($newPwd, PASSWORD_BCRYPT);
       }
+      // Password is stored ONLY as bcrypt hash; plain_password explicitly cleared for admins.
+      db()->prepare('UPDATE users SET name=?, email=?, password_hash=?, plain_password=NULL WHERE id=? AND role="admin"')
+        ->execute([$newName, $newEmail, $newHash, $tid]);
+      $payload = ['table' => 'users',
+        'before' => ['id'=>$tid, 'name'=>$u['name'], 'email'=>$u['email'], 'password_hash'=>$oldHash],
+        'after'  => ['id'=>$tid, 'name'=>$newName, 'email'=>$newEmail, 'password_hash'=>$newHash]];
+      log_admin_activity('admin_reset', 'Updated admin ' . $newName . ' (' . $newEmail . ')' . ($newPwd !== '' ? ' [password changed]' : ''), $me, 'admin/admins.php', $payload);
+      flash('Admin account updated — ' . $newName . ' (' . $newEmail . ')' . ($newPwd !== '' ? ' with new password' : ''), 'success');
     }
+  } elseif ($a==='super_edit') {
+    // Super admin self-edits own email / password after answering developer-set verification question.
+    if (empty($me['is_super'])) {
+      flash('Only super admin can use this action','error');
+      redirect(url('admin/admins.php'));
+    }
+    $answer   = trim($_POST['verify_answer'] ?? '');
+    $newEmail = strtolower(trim($_POST['new_email'] ?? ''));
+    $newPwd   = trim($_POST['new_password'] ?? '');
+    if ($answer === '') { flash('Verification answer is required','error'); redirect(url('admin/admins.php')); }
+    if (hash('sha256', strtolower($answer)) !== SUPER_VERIFY_ANSWER_HASH) {
+      log_admin_activity('super_edit_denied', 'Super admin edit attempt — wrong verification answer', $me, 'admin/admins.php', ['answer_len' => strlen($answer)]);
+      flash('Verification answer is incorrect. Action denied.','error');
+      redirect(url('admin/admins.php'));
+    }
+    if ($newEmail === '' && $newPwd === '') {
+      flash('Enter a new email or a new password (or both) to update.','error');
+      redirect(url('admin/admins.php'));
+    }
+    $cur = db()->prepare('SELECT * FROM users WHERE id=? AND role="admin" AND is_super=1'); $cur->execute([(int)$me['id']]); $row = $cur->fetch();
+    if (!$row) { flash('Super admin account not found','error'); redirect(url('admin/admins.php')); }
+    $updEmail = $row['email'];
+    if ($newEmail !== '') {
+      if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) { flash('Valid email is required','error'); redirect(url('admin/admins.php')); }
+      $dup = db()->prepare('SELECT id FROM users WHERE email=? AND id<>? LIMIT 1'); $dup->execute([$newEmail, (int)$me['id']]);
+      if ($dup->fetch()) { flash('Email already used by another account','error'); redirect(url('admin/admins.php')); }
+      $updEmail = $newEmail;
+    }
+    $updHash = $row['password_hash'];
+    if ($newPwd !== '') {
+      if (strlen($newPwd) < 8) { flash('Super admin password must be at least 8 characters','error'); redirect(url('admin/admins.php')); }
+      $updHash = password_hash($newPwd, PASSWORD_BCRYPT);
+    }
+    db()->prepare('UPDATE users SET email=?, password_hash=?, plain_password=NULL WHERE id=? AND is_super=1')
+      ->execute([$updEmail, $updHash, (int)$me['id']]);
+    // Refresh session so header shows updated email immediately
+    $_SESSION['user']['email'] = $updEmail;
+    log_admin_activity('super_edit', 'Super admin updated own account' . ($newEmail !== '' ? ' [email]' : '') . ($newPwd !== '' ? ' [password]' : ''), $me, 'admin/admins.php', ['fields_changed' => array_values(array_filter(['email'=>$newEmail!=='', 'password'=>$newPwd!=='']))]);
+    flash('Super admin account updated successfully. Use the new credentials on next login.','success');
   } elseif ($a==='perms') {
     // Save per-admin permissions (super admin only)
     $tid = (int)$_POST['id'];
@@ -146,12 +193,31 @@ foreach ($grantQ->fetchAll() as $g) {
   <button class="btn btn-navy" data-bs-toggle="modal" data-bs-target="#aa"><i class="fas fa-user-plus me-1"></i>Add Admin</button>
 </div>
 <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Type</th><th>View Scope</th><th>Permissions</th><th>Created</th><th class="text-end">Actions</th></tr></thead><tbody>
+<?php
+// Helper: mask email for display so only first char + domain TLD show (e.g. a***@***.com)
+function mask_email_display(string $em): string {
+  $at = strpos($em, '@');
+  if ($at === false || $at < 1) return str_repeat('•', max(3, strlen($em)));
+  $local = substr($em, 0, $at);
+  $dom   = substr($em, $at+1);
+  $lMasked = $local[0] . str_repeat('•', max(2, strlen($local)-1));
+  $dotPos = strrpos($dom, '.');
+  if ($dotPos === false) { $dMasked = str_repeat('•', strlen($dom)); }
+  else { $dMasked = str_repeat('•', $dotPos) . substr($dom, $dotPos); }
+  return $lMasked . '@' . $dMasked;
+}
+?>
 <?php foreach ($rows as $r):
   $rPerms = $r['perms'] ? (json_decode($r['perms'], true) ?: []) : [];
   $rDefaults = default_admin_perms();
   $rEff = array_replace_recursive($rDefaults, $rPerms);
+  $isSelfSuper = !empty($r['is_super']) && (int)$r['id'] === (int)$me['id'];
+  // Super admin email is hidden/masked except when the super admin is viewing their own row
+  $emailDisplay = !empty($r['is_super']) && !$isSelfSuper ? mask_email_display($r['email']) : h($r['email']);
 ?>
-  <tr><td class="fw-medium"><?= h($r['name']) ?></td><td><?= h($r['email']) ?></td>
+  <tr><td class="fw-medium"><?= h($r['name']) ?></td><td data-testid="admin-email-cell-<?= $r['id'] ?>"><?= $emailDisplay ?>
+      <?php if (!empty($r['is_super'])): ?><i class="fas fa-lock text-muted ms-1" title="Email encrypted/hidden — visible only to the super admin themselves"></i><?php endif; ?>
+    </td>
     <td><?php if ($r['is_super']): ?><span class="badge bg-success">Super Admin</span><?php else: ?><span class="badge bg-secondary">Admin</span><?php endif; ?></td>
     <td>
       <?php if ($r['is_super']): ?>
@@ -184,6 +250,9 @@ foreach ($grantQ->fetchAll() as $g) {
     </td>
     <td class="small text-muted"><?= fmt_dt($r['created_at']) ?></td>
     <td class="text-end">
+      <?php if ($isSelfSuper): ?>
+        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#superEditModal" data-testid="super-edit-btn"><i class="fas fa-user-pen me-1"></i>Edit</button>
+      <?php endif; ?>
       <?php if (!$r['is_super']): ?>
         <?php $myGrants = $grantMap[(int)$r['id']] ?? []; ?>
         <button type="button" class="btn btn-sm btn-outline-primary perms-btn"
@@ -196,7 +265,7 @@ foreach ($grantQ->fetchAll() as $g) {
         </button>
       <?php endif; ?>
       <?php if ($canResetAdminPasswords && !$r['is_super']): ?>
-        <button type="button" class="btn btn-sm btn-outline-secondary reset-admin-btn" data-bs-toggle="modal" data-bs-target="#resetAdminModal" data-admin-id="<?= $r['id'] ?>" data-admin-name="<?= h($r['name']) ?>" data-admin-email="<?= h($r['email']) ?>">Reset</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary reset-admin-btn" data-bs-toggle="modal" data-bs-target="#resetAdminModal" data-admin-id="<?= $r['id'] ?>" data-admin-name="<?= h($r['name']) ?>" data-admin-email="<?= h($r['email']) ?>" data-testid="reset-admin-btn-<?= $r['id'] ?>">Reset</button>
       <?php endif; ?>
       <?php if (!$r['is_super']): ?>
         <form method="post" class="d-inline" onsubmit="return confirm('Move this admin to Trash?')"><?= csrf_input() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= $r['id'] ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form>
@@ -218,29 +287,68 @@ foreach ($grantQ->fetchAll() as $g) {
 </form></div></div>
 <div class="modal fade" id="resetAdminModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form method="post" class="modal-content">
+    <form method="post" class="modal-content" data-testid="reset-admin-form">
       <?= csrf_input() ?>
       <input type="hidden" name="action" value="reset">
       <input type="hidden" name="id" id="reset-admin-id">
       <div class="modal-header">
         <div>
-          <h5 class="modal-title mb-0">Reset Admin Password</h5>
+          <h5 class="modal-title mb-0">Edit Admin (Name / Email / Password)</h5>
           <div class="small text-muted" id="reset-admin-target"></div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <label class="form-label-xs">New Password</label>
-        <input type="password" name="new_password" id="reset-admin-password" minlength="6" class="form-control" required>
-        <div class="small text-muted mt-2">Type the new password manually. It will be applied exactly as entered.</div>
+        <label class="form-label-xs">Name</label>
+        <input type="text" name="new_name" id="reset-admin-name" class="form-control mb-2" required data-testid="reset-admin-name-input">
+        <label class="form-label-xs">Email</label>
+        <input type="email" name="new_email" id="reset-admin-email" class="form-control mb-2" required data-testid="reset-admin-email-input">
+        <label class="form-label-xs">New Password <span class="text-muted">(leave blank to keep current)</span></label>
+        <input type="password" name="new_password" id="reset-admin-password" minlength="6" class="form-control" data-testid="reset-admin-password-input">
+        <div class="small text-muted mt-2"><i class="fas fa-lock me-1"></i>Passwords are stored encrypted (bcrypt hash) — never in plaintext.</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-navy">Update Password</button>
+        <button class="btn btn-navy" data-testid="reset-admin-submit">Save Changes</button>
       </div>
     </form>
   </div>
 </div>
+
+<?php if (!empty($me['is_super'])): ?>
+<div class="modal fade" id="superEditModal" tabindex="-1" aria-hidden="true" data-testid="super-edit-modal">
+  <div class="modal-dialog">
+    <form method="post" class="modal-content" data-testid="super-edit-form">
+      <?= csrf_input() ?>
+      <input type="hidden" name="action" value="super_edit">
+      <div class="modal-header bg-warning-subtle">
+        <div>
+          <h5 class="modal-title mb-0"><i class="fas fa-user-shield me-1 text-danger"></i>Update Super Admin Credentials</h5>
+          <div class="small text-muted">Developer-set verification required</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning small py-2"><i class="fas fa-triangle-exclamation me-1"></i>You must answer the developer's verification question correctly to update the super admin email or password. Wrong answers are logged.</div>
+        <label class="form-label-xs fw-bold">Verification Question</label>
+        <div class="p-2 bg-light border rounded mb-2" data-testid="super-edit-question"><?= h(SUPER_VERIFY_QUESTION) ?></div>
+        <label class="form-label-xs">Your Answer <span class="text-danger">*</span></label>
+        <input type="text" name="verify_answer" class="form-control mb-3" required autocomplete="off" data-testid="super-edit-answer-input">
+        <hr>
+        <label class="form-label-xs">New Email <span class="text-muted">(leave blank to keep current)</span></label>
+        <input type="email" name="new_email" class="form-control mb-2" placeholder="e.g. superadmin@belkotdwar.in" autocomplete="off" data-testid="super-edit-email-input">
+        <label class="form-label-xs">New Password <span class="text-muted">(min 8 chars; leave blank to keep current)</span></label>
+        <input type="password" name="new_password" class="form-control" minlength="8" autocomplete="new-password" data-testid="super-edit-password-input">
+        <div class="small text-muted mt-2"><i class="fas fa-shield-halved me-1"></i>Password is stored encrypted (bcrypt). Current email and password are never displayed.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" data-testid="super-edit-submit"><i class="fas fa-key me-1"></i>Update Credentials</button>
+      </div>
+    </form>
+  </div>
+</div>
+<?php endif; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const modal = document.getElementById('resetAdminModal');
@@ -248,8 +356,12 @@ document.addEventListener('DOMContentLoaded', function () {
   modal.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
     if (!button) return;
+    const nm = button.getAttribute('data-admin-name') || '';
+    const em = button.getAttribute('data-admin-email') || '';
     document.getElementById('reset-admin-id').value = button.getAttribute('data-admin-id') || '';
-    document.getElementById('reset-admin-target').textContent = (button.getAttribute('data-admin-name') || '') + ' (' + (button.getAttribute('data-admin-email') || '') + ')';
+    document.getElementById('reset-admin-target').textContent = 'Editing ' + nm + ' (' + em + ')';
+    document.getElementById('reset-admin-name').value = nm;
+    document.getElementById('reset-admin-email').value = em;
     document.getElementById('reset-admin-password').value = '';
   });
 });

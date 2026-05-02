@@ -28,3 +28,12 @@ Existing PHP exam portal. User wants admin-controlled HARD lockdown in student e
 - Electron kiosk wrapper for true OS-level key block (Windows key, RDP detection)
 - Server-side violation summary on monitor-exam.php for new violation types
 - Unit harness for lockdown.js (Playwright) on a static PHP stack
+
+## Session 2 — Sidebar drawer + Admin account controls
+- `assets/css/app.css` — admin sidebar now **fixed** on left (`position:fixed`), main content scrolls independently (`overflow-y:auto`), sticky top-bar, mobile hamburger collapse
+- `admin/_shell_top.php` — added mobile hamburger toggle + backdrop + data-testids on all nav links
+- `admin/admins.php` **Reset** modal now edits **Name + Email + Password** (password optional). Password stored ONLY as bcrypt; `plain_password` column explicitly nulled for admins.
+- `admin/admins.php` — new **Edit** button visible only on super admin's own row → opens `superEditModal` with developer-set verification question. Wrong answers are logged as `super_edit_denied`.
+- `admin/admins.php` — super admin's email is **masked** (`a••••@••••••••.in`) when displayed to other viewers (only super admin sees own email in plain).
+- `includes/config.php` — new constants `SUPER_VERIFY_QUESTION` and `SUPER_VERIFY_ANSWER_HASH` (SHA-256 of trimmed-lowercase answer). Developer-only control.
+- `includes/config.php` — `ensureSuperAdmin()` no longer force-resets the super admin password on every request; only seeds once if no super admin exists. This is essential so the super admin CAN change their password.
