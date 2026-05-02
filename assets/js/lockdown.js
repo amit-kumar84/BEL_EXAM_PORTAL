@@ -171,6 +171,62 @@ window.addEventListener('keydown', e => {
   }
 }, {capture: true, passive: false});
 
+// ============================================================================
+// PRINT SCREEN — aggressive clipboard wipe
+// Windows/Mac send PrtSc / Cmd+Shift+3|4|5 to the OS BEFORE the browser gets the
+// event, so preventDefault cannot stop the screenshot being taken. The ONLY
+// effective defence from a web page is to wipe the clipboard immediately so the
+// captured screenshot in clipboard becomes empty / useless.
+// ============================================================================
+function _wipeClipboard(reason) {
+  // Try every API path we have. Any/all may silently fail depending on focus state.
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(' ').catch(()=>{}); } catch(_){}
+  // Legacy execCommand fallback — works on some browsers when focus is in the page.
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = ' '; ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch(_){}
+}
+
+function _isPrintScreen(e) {
+  if (!e) return false;
+  const k = e.key || '';
+  if (e.keyCode === 44) return true;
+  if (k === 'PrintScreen' || k === 'Snapshot') return true;
+  // Mac / Cmd+Shift+3|4|5 (system screenshot tools)
+  if (e.metaKey && e.shiftKey && (k === '3' || k === '4' || k === '5')) return true;
+  // Linux: Shift+PrtSc, Ctrl+PrtSc, Alt+PrtSc — already covered by keyCode 44 above
+  return false;
+}
+
+if (violCheck('screenshot_block')) {
+  // Run in capture phase on window, document AND body — maximise the chance we see it.
+  const prtHandler = (e, phaseName) => {
+    if (submitted) return;
+    if (!_isPrintScreen(e)) return;
+    try { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); } catch(_){}
+    _wipeClipboard('prtsc_' + phaseName);
+    // Run two more wipes shortly after, because the screenshot may be placed in clipboard
+    // 20-50 ms after the key is released (depends on OS).
+    setTimeout(() => _wipeClipboard('prtsc_' + phaseName + '_late1'), 30);
+    setTimeout(() => _wipeClipboard('prtsc_' + phaseName + '_late2'), 150);
+    logViolation('screenshot_attempt', 'Screenshot key detected — clipboard wiped (' + phaseName + ')');
+    showBlockedKeyWarning('📸 Screenshot Blocked — clipboard wiped');
+    return false;
+  };
+  window.addEventListener('keydown',  e => prtHandler(e, 'keydown'),  {capture:true, passive:false});
+  window.addEventListener('keyup',    e => prtHandler(e, 'keyup'),    {capture:true, passive:false});
+  document.addEventListener('keydown', e => prtHandler(e, 'doc_keydown'), {capture:true, passive:false});
+  document.addEventListener('keyup',   e => prtHandler(e, 'doc_keyup'),   {capture:true, passive:false});
+  // Also wipe clipboard every time the window loses focus — covers PrtSc while tabbed away.
+  window.addEventListener('blur', () => { if (!submitted) _wipeClipboard('blur'); });
+  // And periodically wipe any lingering clipboard content while focused on the exam.
+  setInterval(() => { if (!submitted && document.hasFocus()) _wipeClipboard('periodic'); }, 4000);
+}
+
 function startLockdown() {
   if (_FFS) enterFS();
 }
