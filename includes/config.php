@@ -19,6 +19,15 @@ define('APP_TIMEZONE', 'Asia/Kolkata');
 define('MAX_VIOLATIONS', 5);
 define('SESSION_NAME', 'bel_exam');
 
+// ----- Super-admin self-edit verification (developer-set) -----
+// Super admin must answer this question correctly to change their own email/password.
+// Only the developer can change these values — edit this file directly.
+define('SUPER_VERIFY_QUESTION', 'In which city was BEL Kotdwar unit established?');
+// Store only the SHA-256 hash of the lowercase-trimmed answer. Never the plaintext.
+// Developer workflow: run `php -r "echo hash('sha256', strtolower(trim('your-answer')));"` and paste below.
+// Default answer (developer should change this): "kotdwar"
+define('SUPER_VERIFY_ANSWER_HASH', '3b3d64d2ebb382eda36ab86f370627f79560a0f680639a604a92acd3a7861aa6');
+
 // ----- SMTP (PHPMailer-style) -----
 // Leave SMTP_HOST blank to disable email. Common settings:
 //   Gmail:  host=smtp.gmail.com port=587 secure=tls user=youraddr@gmail.com pass=<App Password>
@@ -74,21 +83,19 @@ function db(): PDO {
     return $pdo;
 }
 
-// ----- Auto reseed admin password to match config if out-of-sync -----
+// ----- Seed super-admin ONCE if missing; never force-reset password after that -----
+// Super admin can later self-edit email/password via admin/admins.php (with developer verification).
 function ensureSuperAdmin(): void {
     try {
         $pdo = db();
-        $row = $pdo->prepare('SELECT id, password_hash FROM users WHERE email = ? AND role = "admin"');
-        $row->execute([ADMIN_EMAIL]);
-        $u = $row->fetch();
-        if (!$u) {
-            $ins = $pdo->prepare('INSERT INTO users (role,name,email,username,password_hash,is_super)
-                                   VALUES ("admin", ?, ?, "superadmin", ?, 1)');
-            $ins->execute([ADMIN_NAME, ADMIN_EMAIL, password_hash(ADMIN_PASSWORD, PASSWORD_BCRYPT)]);
-        } elseif (!password_verify(ADMIN_PASSWORD, $u['password_hash'])) {
-            $upd = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
-            $upd->execute([password_hash(ADMIN_PASSWORD, PASSWORD_BCRYPT), $u['id']]);
-        }
+        // Look for ANY super admin (is_super=1) — not just the seed email.
+        // Super admin may have changed their own email after seeding; that's fine.
+        $any = $pdo->query('SELECT id FROM users WHERE role="admin" AND is_super=1 LIMIT 1')->fetch();
+        if ($any) return; // Already have a super admin — do not touch.
+        // No super admin yet → seed using config values.
+        $ins = $pdo->prepare('INSERT INTO users (role,name,email,username,password_hash,is_super)
+                               VALUES ("admin", ?, ?, "superadmin", ?, 1)');
+        $ins->execute([ADMIN_NAME, ADMIN_EMAIL, password_hash(ADMIN_PASSWORD, PASSWORD_BCRYPT)]);
     } catch (Throwable $e) { /* DB not ready yet */ }
 }
 ensureSuperAdmin();
