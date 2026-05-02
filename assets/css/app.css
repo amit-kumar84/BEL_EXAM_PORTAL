@@ -105,11 +105,17 @@ body { background: var(--slatebg); font-family: 'Segoe UI', Tahoma, sans-serif; 
 .status-closed { background:#fee2e2; color:#991b1b; }
 .pill { font-size:10px; padding:3px 8px; border-radius:3px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
 
-/* Admin sidebar — fixed drawer on the left, main content scrolls independently */
+/* Admin sidebar — fixed drawer on the left, main content scrolls naturally with the page */
+.admin-body { background: #f8fafc; }
 .admin-layout { position: relative; min-height: 100vh; }
+
+/* Sidebar: pinned to left, never scrolls with page; if nav list overflows, sidebar itself scrolls internally */
 .admin-sidebar {
-  position: fixed; top: 0; left: 0; bottom: 0; width: 260px;
-  background: var(--navy); color:#fff; padding: 20px;
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px; height: 100vh;
+  background: var(--navy); color:#fff;
+  padding: 20px;
   border-right: 4px solid var(--saffron);
   overflow-y: auto; overflow-x: hidden;
   z-index: 1030;
@@ -125,27 +131,29 @@ body { background: var(--slatebg); font-family: 'Segoe UI', Tahoma, sans-serif; 
 .admin-sidebar a.nav-link.active { background: rgba(255,255,255,0.15); color:#fff; }
 .admin-sidebar .user-box { margin-top: auto; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius:3px; font-size:12px; flex-shrink: 0; }
 
+/* Main: offset by sidebar width; body handles the scroll — no nested scroll containers */
 .admin-main {
   margin-left: 260px;
   background: #f8fafc;
   min-height: 100vh;
-  height: 100vh;
-  overflow-y: auto; overflow-x: hidden;
-  display: flex; flex-direction: column;
 }
-.admin-main > .p-4 { flex: 1 1 auto; }
 .admin-topbar {
-  background:#fff; border-bottom:1px solid #e2e8f0; padding: 14px 24px;
+  background:#fff; border-bottom:1px solid #e2e8f0;
+  padding: 14px 24px;
   display:flex; justify-content:space-between; align-items:center;
   position: sticky; top: 0; z-index: 20;
 }
 .admin-topbar h1 { font-size: 20px; font-weight:700; margin:0; }
+
+/* Admin-body: ensure the flash container (outside admin-layout) does not sit under the fixed sidebar */
+body.admin-body > .container.mt-3 { margin-left: 260px !important; max-width: calc(100% - 280px); }
 
 /* Mobile: collapse drawer to hamburger toggle */
 @media (max-width: 768px) {
   .admin-sidebar { transform: translateX(-100%); transition: transform .25s ease; }
   .admin-sidebar.is-open { transform: translateX(0); box-shadow: 0 0 24px rgba(0,0,0,0.35); }
   .admin-main { margin-left: 0; }
+  body.admin-body > .container.mt-3 { margin-left: 0 !important; max-width: 100%; }
   .admin-mobile-burger { display: inline-flex !important; }
 }
 .admin-mobile-burger { display: none; background: transparent; border: 0; font-size: 20px; color: var(--navy); margin-right: 8px; }
