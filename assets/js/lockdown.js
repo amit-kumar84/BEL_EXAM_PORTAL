@@ -18,8 +18,8 @@ let violations = 0;
 let submitted = false;
 let fsRetryInterval = null;
 let fsRetryEndTime = 0;
-const FS_RETRY_MS = 100;
-const FS_RETRY_TIMEOUT_MS = 1000;
+const FS_RETRY_MS = 50;
+const FS_RETRY_TIMEOUT_MS = 3000;
 
 // init answered from DOM
 document.querySelectorAll('.q-box').forEach(box => {
@@ -80,17 +80,21 @@ function showFSOverlay(msg) {
   let o = document.getElementById('fs-exit-overlay');
   if (!o) {
     o = document.createElement('div'); o.id = 'fs-exit-overlay';
-    Object.assign(o.style, {position:'fixed',left:0,top:0,right:0,bottom:0,background:'rgba(0,0,0,0.92)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2147483647,flexDirection:'column',padding:'20px',textAlign:'center',pointerEvents:'auto'});
+    Object.assign(o.style, {position:'fixed',left:0,top:0,right:0,bottom:0,background:'rgba(15,23,42,0.96)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2147483647,flexDirection:'column',padding:'20px',textAlign:'center',pointerEvents:'auto',cursor:'pointer'});
     const box = document.createElement('div'); box.style.maxWidth='720px';
     const h = document.createElement('div'); h.id='fs-exit-overlay-msg'; h.style.fontSize='18px'; h.style.marginBottom='18px'; box.appendChild(h);
     const btn = document.createElement('button'); btn.className='btn btn-lg btn-light'; btn.textContent='Return to Fullscreen';
-    btn.onclick = () => { enterFS().then(hideFSOverlay).catch(()=>{ /* ignore */ }); };
+    btn.onclick = (ev) => { ev.stopPropagation(); enterFS().then(hideFSOverlay).catch(()=>{ /* ignore */ }); };
     box.appendChild(btn);
+    const hint = document.createElement('div'); hint.style.marginTop='14px'; hint.style.fontSize='12px'; hint.style.color='#cbd5e1'; hint.textContent='Tap anywhere to return instantly — this screen auto-retries every 50 ms';
+    box.appendChild(hint);
     o.appendChild(box);
+    // Any click / pointerdown on the overlay re-enters fullscreen using the user gesture.
+    o.addEventListener('pointerdown', () => { enterFS().then(hideFSOverlay).catch(()=>{}); });
     document.body.appendChild(o);
   }
   document.body.style.overflow = 'hidden';
-  document.getElementById('fs-exit-overlay-msg').innerHTML = msg || 'The exam requires fullscreen — please click the button to return to fullscreen.';
+  document.getElementById('fs-exit-overlay-msg').innerHTML = msg || 'The exam requires fullscreen — please click to return to fullscreen.';
   o.style.display = 'flex';
 }
 function hideFSOverlay() {
@@ -139,13 +143,33 @@ function _onFullscreenChange() {
   if (!_FFS) { return; }
   if (!_fsEl() && !submitted) {
     logViolation('fullscreen_exit', 'Exited fullscreen');
-    showFSOverlay('You left fullscreen. The exam will try to return to fullscreen automatically. If it fails, click the button.');
-    enterFS().then(() => { hideFSOverlay(); }).catch(() => { startFSRetryLoop(); });
+    // Try IMMEDIATE synchronous re-entry first (some browsers accept this inside fullscreenchange
+    // if the original user activation gesture is still considered valid).
+    try { enterFS().catch(() => {}); } catch(_) {}
+    showFSOverlay('You left fullscreen. Auto-returning now...');
+    // Start fast retry loop (50 ms × 60 = 3 s) — any click in the overlay will also force FS.
+    startFSRetryLoop();
   } else {
     hideFSOverlay();
     if (fsRetryInterval) { clearInterval(fsRetryInterval); fsRetryInterval = null; }
   }
 }
+
+// Aggressive top-level F11 / Esc blocker — runs BEFORE any other handler in capture phase.
+// Note: modern browsers reserve F11/Esc for exiting fullscreen and may ignore preventDefault for
+// these specific keys. What we CAN guarantee is instant detection + instant re-entry retry.
+window.addEventListener('keydown', e => {
+  if (submitted) return;
+  if ((e.key === 'F11' || e.keyCode === 122 || e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27)) {
+    try { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); } catch(_){}
+    // If we are still in fullscreen (key was blocked), log once and show a brief toast.
+    // If the browser ignored preventDefault (typical for Esc/F11), fullscreenchange will fire
+    // and our retry loop will slam us back in within ~50 ms.
+    logViolation('fullscreen_key_exit', 'Blocked fullscreen exit key: ' + (e.key || e.keyCode));
+    showBlockedKeyWarning(e.key === 'F11' ? '⛔ F11 Blocked' : '⛔ Esc Blocked');
+    return false;
+  }
+}, {capture: true, passive: false});
 
 function startLockdown() {
   if (_FFS) enterFS();
