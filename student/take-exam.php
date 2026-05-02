@@ -318,6 +318,8 @@ const I18N = {
 
 const overlay = document.getElementById('fs-overlay');
 const startBtn = document.getElementById('fs-start-btn');
+// Make the BEL logo URL available to lockdown.js so the exit overlay shows the same logo.
+window.BEL_LOGO_URL = <?= json_encode(url('assets/icons/BEL-Logo-Trnsprent.png')) ?>;
 function _fsElLocal(){ return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null; }
 function _enterFsLocal(){
   if (_fsElLocal()) return Promise.resolve();
@@ -338,29 +340,36 @@ function _enterFsLocal(){
   } catch (e) { return Promise.reject(e); }
 }
 if (startBtn) {
+  // Only fire once — prevents double-firing that could cause odd state during the request.
+  let _startHandled = false;
   startBtn.addEventListener('click', async () => {
+    if (_startHandled) return;
+    _startHandled = true;
     startBtn.disabled = true;
     startBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entering fullscreen…';
     try {
       await _enterFsLocal();
     } catch (err) {
+      _startHandled = false;
       startBtn.disabled = false;
       startBtn.innerHTML = '<i class="fas fa-expand me-2"></i>Enter Fullscreen & Start Exam';
       alert('Fullscreen could not be entered. Please allow fullscreen for this site and try again.\n\nDetails: ' + (err && err.message ? err.message : err));
       return;
     }
     if (!_fsElLocal()) {
+      _startHandled = false;
       startBtn.disabled = false;
       startBtn.innerHTML = '<i class="fas fa-expand me-2"></i>Enter Fullscreen & Start Exam';
       alert('Unable to enter fullscreen. Check your browser permissions and try again.');
       return;
     }
+    // Fullscreen CONFIRMED — now (and only now) hide the start overlay and boot lockdown.
     overlay?.remove();
     if (typeof startLockdown === 'function') startLockdown();
   });
 }
-// Safety net: if fullscreen is already active on load (unlikely), clear the start overlay.
-if (_fsElLocal() && overlay) overlay.remove();
+// NOTE: No auto-remove of fs-overlay on page load. The overlay disappears ONLY after
+// the student clicks "Enter Fullscreen & Start Exam" AND the browser confirms fullscreen.
 </script>
 <script>
 function beep(){

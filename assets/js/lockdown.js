@@ -52,8 +52,26 @@ if (violCheck('camera')) {
 
 // ------ Fullscreen ------
 function _fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null; }
+
+// Keyboard Lock API — Chrome/Edge only. When granted (only works inside fullscreen),
+// F11 and Escape are DELIVERED to our JS handlers instead of being handled natively by
+// the browser UI. preventDefault() then actually prevents fullscreen exit.
+// Spec: https://wicg.github.io/keyboard-lock/
+function _tryKeyboardLock() {
+  try {
+    if (navigator.keyboard && typeof navigator.keyboard.lock === 'function') {
+      navigator.keyboard.lock(['Escape', 'F11']).catch(() => {});
+    }
+  } catch(_) {}
+}
+function _releaseKeyboardLock() {
+  try {
+    if (navigator.keyboard && typeof navigator.keyboard.unlock === 'function') navigator.keyboard.unlock();
+  } catch(_) {}
+}
+
 function enterFS() {
-  if (_fsEl()) return Promise.resolve();
+  if (_fsEl()) { _tryKeyboardLock(); return Promise.resolve(); }
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
   if (!req) return Promise.reject(new Error('Fullscreen API not supported'));
@@ -61,13 +79,13 @@ function enterFS() {
     const r = req.call(el);
     // Safari / old browsers return undefined (not a Promise)
     if (r && typeof r.then === 'function') {
-      return r.catch(e => { throw new Error('FS request failed: ' + (e && e.message || e)); });
+      return r.then(() => { _tryKeyboardLock(); }).catch(e => { throw new Error('FS request failed: ' + (e && e.message || e)); });
     }
     // Wait for fullscreenchange as a pseudo-promise fallback
     return new Promise((resolve, reject) => {
       let done = false;
-      const timer = setTimeout(() => { if (!done) { done = true; _fsEl() ? resolve() : reject(new Error('FS timeout')); } }, 2000);
-      const on = () => { if (!done && _fsEl()) { done = true; clearTimeout(timer); document.removeEventListener('fullscreenchange', on); document.removeEventListener('webkitfullscreenchange', on); resolve(); } };
+      const timer = setTimeout(() => { if (!done) { done = true; _fsEl() ? (_tryKeyboardLock(), resolve()) : reject(new Error('FS timeout')); } }, 2000);
+      const on = () => { if (!done && _fsEl()) { done = true; clearTimeout(timer); document.removeEventListener('fullscreenchange', on); document.removeEventListener('webkitfullscreenchange', on); _tryKeyboardLock(); resolve(); } };
       document.addEventListener('fullscreenchange', on);
       document.addEventListener('webkitfullscreenchange', on);
     });
@@ -82,11 +100,19 @@ function showFSOverlay(msg) {
     o = document.createElement('div'); o.id = 'fs-exit-overlay';
     Object.assign(o.style, {position:'fixed',left:0,top:0,right:0,bottom:0,background:'rgba(15,23,42,0.96)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2147483647,flexDirection:'column',padding:'20px',textAlign:'center',pointerEvents:'auto',cursor:'pointer'});
     const box = document.createElement('div'); box.style.maxWidth='720px';
-    const h = document.createElement('div'); h.id='fs-exit-overlay-msg'; h.style.fontSize='18px'; h.style.marginBottom='18px'; box.appendChild(h);
-    const btn = document.createElement('button'); btn.className='btn btn-lg btn-light'; btn.textContent='Return to Fullscreen';
-    btn.onclick = (ev) => { ev.stopPropagation(); enterFS().then(hideFSOverlay).catch(()=>{ /* ignore */ }); };
+    // BEL logo (matches the start overlay visual)
+    const logo = document.createElement('img');
+    logo.src = (typeof BEL_LOGO_URL !== 'undefined') ? BEL_LOGO_URL : '';
+    Object.assign(logo.style, {width:'72px', height:'72px', background:'#fff', padding:'8px', borderRadius:'4px', objectFit:'contain', marginBottom:'12px'});
+    if (logo.src) box.appendChild(logo);
+    const h = document.createElement('div'); h.id='fs-exit-overlay-msg'; h.style.fontSize='18px'; h.style.fontWeight='700'; h.style.marginBottom='18px'; box.appendChild(h);
+    // Match the start button styling: btn-success + btn-lg + px-4 + icon
+    const btn = document.createElement('button');
+    btn.className='btn btn-success btn-lg px-4';
+    btn.innerHTML = '<i class="fas fa-expand me-2"></i>Return to Fullscreen';
+    btn.onclick = (ev) => { ev.stopPropagation(); enterFS().then(hideFSOverlay).catch(()=>{}); };
     box.appendChild(btn);
-    const hint = document.createElement('div'); hint.style.marginTop='14px'; hint.style.fontSize='12px'; hint.style.color='#cbd5e1'; hint.textContent='Tap anywhere to return instantly — this screen auto-retries every 50 ms';
+    const hint = document.createElement('div'); hint.style.marginTop='14px'; hint.style.fontSize='12px'; hint.style.color='#cbd5e1'; hint.textContent='Tap anywhere to return instantly — auto-retrying every 50 ms';
     box.appendChild(hint);
     o.appendChild(box);
     // Any click / pointerdown on the overlay re-enters fullscreen using the user gesture.
@@ -100,10 +126,6 @@ function showFSOverlay(msg) {
 function hideFSOverlay() {
   const o = document.getElementById('fs-exit-overlay');
   if (o) o.style.display = 'none';
-  // Also clear the initial "Enter Fullscreen to Start" overlay if it is still around
-  // (some browsers fire fullscreenchange before the click handler completes its remove()).
-  const start = document.getElementById('fs-overlay');
-  if (start && document.fullscreenElement) { try { start.remove(); } catch(_){} }
   document.body.style.overflow = '';
 }
 
@@ -152,6 +174,8 @@ function _onFullscreenChange() {
   } else {
     hideFSOverlay();
     if (fsRetryInterval) { clearInterval(fsRetryInterval); fsRetryInterval = null; }
+    // Re-acquire keyboard lock every time we enter fullscreen (lock is tied to FS session).
+    _tryKeyboardLock();
   }
 }
 
@@ -766,6 +790,7 @@ function submitExam() {
 function autoSubmit(reason) {
   if (submitted) return;
   submitted = true;
+  _releaseKeyboardLock();
   if (reason) alert(reason);
   try { document.getElementById('cam').srcObject?.getTracks().forEach(t => t.stop()); } catch(e){}
   window.location.href = SUBMIT_URL;
