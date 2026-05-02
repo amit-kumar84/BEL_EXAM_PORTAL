@@ -1,6 +1,24 @@
 RewriteEngine On
-# Prevent direct listing of includes/uploads
-<FilesMatch "\.(sql|log|md)$">
+Options -Indexes
+
+# ----------------------------------------------------------------------------
+# Deny direct access to config / schema / docs / logs
+# ----------------------------------------------------------------------------
+<FilesMatch "\.(sql|log|md|env|ini|bak|sh|psd|xcf|yml|yaml|lock)$">
   Require all denied
 </FilesMatch>
-Options -Indexes
+
+# ----------------------------------------------------------------------------
+# Block direct access to internal folders that should only be served via PHP
+# ----------------------------------------------------------------------------
+RewriteRule ^includes/ - [F,L]
+RewriteRule ^memory/   - [F,L]
+RewriteRule ^docs/     - [F,L]
+RewriteRule ^debug/    - [F,L]
+
+# Allow uploaded photos to be served, but block any PHP execution inside uploads/
+<Directory "uploads">
+  php_flag engine off
+  RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar
+  RemoveType    .php .phtml .php3 .php4 .php5 .php7 .phar
+</Directory>

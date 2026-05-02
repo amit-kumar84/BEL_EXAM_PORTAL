@@ -100,18 +100,15 @@ htdocs/
 │   └── TROUBLESHOOTING.md       # Common issues
 │
 ├── 📊 Database
-│   ├── schema.sql               # Complete database schema
-│   └── schema_upgrade.sql       # Database migrations
+│   └── schema.sql               # Complete consolidated database schema (single file)
 │
 ├── ⚙️ Setup
 │   ├── OFFLINE_SETUP.bat        # Windows setup script
 │   ├── OFFLINE_SETUP.sh         # Linux/Mac setup script
-│   └── .htaccess                # Apache rewrite rules
+│   └── .htaccess                # Apache rewrite rules + hardening
 │
-└── 🧪 Tests (Optional)
-    ├── OFFLINE_TEST.php         # Offline test suite
-    ├── test_login.php           # Login tests
-    └── debug_report.php         # Debug information
+└── 🧪 Dev-only (blocked by .htaccess in production)
+    └── debug/                   # Offline test suite, login tests, debug report
 ```
 
 ---
