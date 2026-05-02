@@ -51,12 +51,27 @@ if (violCheck('camera')) {
 }
 
 // ------ Fullscreen ------
+function _fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null; }
 function enterFS() {
-  if (document.fullscreenElement) return Promise.resolve();
+  if (_fsEl()) return Promise.resolve();
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+  if (!req) return Promise.reject(new Error('Fullscreen API not supported'));
   try {
-    return document.documentElement.requestFullscreen().catch(()=>{ throw new Error('FS request failed'); });
+    const r = req.call(el);
+    // Safari / old browsers return undefined (not a Promise)
+    if (r && typeof r.then === 'function') {
+      return r.catch(e => { throw new Error('FS request failed: ' + (e && e.message || e)); });
+    }
+    // Wait for fullscreenchange as a pseudo-promise fallback
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const timer = setTimeout(() => { if (!done) { done = true; _fsEl() ? resolve() : reject(new Error('FS timeout')); } }, 2000);
+      const on = () => { if (!done && _fsEl()) { done = true; clearTimeout(timer); document.removeEventListener('fullscreenchange', on); document.removeEventListener('webkitfullscreenchange', on); resolve(); } };
+      document.addEventListener('fullscreenchange', on);
+      document.addEventListener('webkitfullscreenchange', on);
+    });
   } catch (e) {
-    // older browsers may throw synchronously
     return Promise.reject(e);
   }
 }
@@ -81,6 +96,10 @@ function showFSOverlay(msg) {
 function hideFSOverlay() {
   const o = document.getElementById('fs-exit-overlay');
   if (o) o.style.display = 'none';
+  // Also clear the initial "Enter Fullscreen to Start" overlay if it is still around
+  // (some browsers fire fullscreenchange before the click handler completes its remove()).
+  const start = document.getElementById('fs-overlay');
+  if (start && document.fullscreenElement) { try { start.remove(); } catch(_){} }
   document.body.style.overflow = '';
 }
 
@@ -107,15 +126,18 @@ function startFSRetryLoop() {
   if (fsRetryInterval) return;
   fsRetryEndTime = Date.now() + FS_RETRY_TIMEOUT_MS;
   fsRetryInterval = setInterval(() => {
-    if (document.fullscreenElement) { clearInterval(fsRetryInterval); fsRetryInterval = null; hideFSOverlay(); return; }
+    if (_fsEl()) { clearInterval(fsRetryInterval); fsRetryInterval = null; hideFSOverlay(); return; }
     if (Date.now() >= fsRetryEndTime) { clearInterval(fsRetryInterval); fsRetryInterval = null; return; }
     enterFS().then(() => { clearInterval(fsRetryInterval); fsRetryInterval = null; hideFSOverlay(); }).catch(() => { /* ignore, keep retrying until timeout */ });
   }, FS_RETRY_MS);
 }
 
-document.addEventListener('fullscreenchange', () => {
+document.addEventListener('fullscreenchange', () => _onFullscreenChange());
+document.addEventListener('webkitfullscreenchange', () => _onFullscreenChange());
+document.addEventListener('msfullscreenchange', () => _onFullscreenChange());
+function _onFullscreenChange() {
   if (!_FFS) { return; }
-  if (!document.fullscreenElement && !submitted) {
+  if (!_fsEl() && !submitted) {
     logViolation('fullscreen_exit', 'Exited fullscreen');
     showFSOverlay('You left fullscreen. The exam will try to return to fullscreen automatically. If it fails, click the button.');
     enterFS().then(() => { hideFSOverlay(); }).catch(() => { startFSRetryLoop(); });
@@ -123,20 +145,26 @@ document.addEventListener('fullscreenchange', () => {
     hideFSOverlay();
     if (fsRetryInterval) { clearInterval(fsRetryInterval); fsRetryInterval = null; }
   }
-});
+}
 
 function startLockdown() {
   if (_FFS) enterFS();
 }
 
 // ------ Tab / window / blur ------
+// Unify tab_switch and window_blur under one logical event so a single Alt+Tab
+// (which fires BOTH visibilitychange and window.blur) doesn't count as 2 violations.
+// The dedup window inside logViolation() also guards against repeats within 2.5s.
 if (violCheck('tab_switch')) {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && !submitted) logViolation('tab_switch', 'Tab/window switched');
   });
 }
 if (violCheck('window_blur')) {
-  window.addEventListener('blur', () => { if (!submitted) logViolation('window_blur', 'Window lost focus'); });
+  // Same dedup key so blur fired alongside visibilitychange is merged.
+  window.addEventListener('blur', () => {
+    if (!submitted) logViolation('tab_switch', 'Window lost focus');
+  });
 }
 
 // ------ Right-click / copy / paste / keys ------
@@ -497,46 +525,33 @@ if (violCheck('screen_sharing_block')) {
     }
   } catch(_) {}
 
-  // Method 2: detect screen mirroring via window.screen vs document metrics (re-check every 5s)
-  setInterval(() => {
-    if (submitted) return;
-    try {
-      // Mirrored / shared screens often have screen.availWidth !== window.innerWidth after maximise in fullscreen
-      const ratio = window.devicePixelRatio || 1;
-      if (ratio && ratio < 0.75) logViolation('screen_sharing', 'Unusual device pixel ratio (' + ratio + ') — possible remote viewer');
-      // Screen.isExtended (Chromium, behind Window Management API)
-      if (typeof screen !== 'undefined' && typeof screen.isExtended === 'boolean' && screen.isExtended) {
-        logViolation('screen_sharing', 'Multiple / extended displays detected');
-      }
-    } catch(_) {}
-  }, 5000);
+  // Method 2: one-shot extended-display check (only log ONCE on load, not every 5s).
+  // screen.isExtended is a reliable signal of multi-monitor; dedup handler also guards.
+  try {
+    if (typeof screen !== 'undefined' && typeof screen.isExtended === 'boolean' && screen.isExtended) {
+      // Delay so page has finished initial paint before first violation fires.
+      setTimeout(() => { if (!submitted) logViolation('screen_sharing', 'Multiple / extended displays detected'); }, 2000);
+    }
+  } catch(_) {}
 }
 
 // ---- 8. Remote access (RDP / AnyDesk / TeamViewer) heuristics ----
+// Only keep the pointer-latency pattern test. Colour depth / hardwareConcurrency /
+// devicePixelRatio gave too many false positives on normal laptops with dual displays.
 if (violCheck('remote_access_block')) {
-  // Heuristic 1: colour depth — RDP sessions often run at 16 or 24 bits instead of 32
-  try {
-    if (screen && screen.colorDepth && screen.colorDepth < 24) {
-      logViolation('remote_access', 'Low colour depth (' + screen.colorDepth + ') — possible remote session');
-    }
-  } catch(_) {}
-  // Heuristic 2: pointer event latency — remote sessions have higher latency variance
-  let lastMove = 0, laggySamples = 0;
+  // Pointer event latency — remote sessions often have higher latency variance.
+  // One-shot: only log the first sustained lag pattern per session.
+  let lastMove = 0, laggySamples = 0, alreadyLogged = false;
   document.addEventListener('pointermove', e => {
+    if (alreadyLogged) return;
     const now = performance.now();
     if (lastMove && (now - lastMove) > 250) laggySamples++;
     lastMove = now;
-    if (laggySamples >= 15 && !submitted) {
-      laggySamples = -9999; // one-shot
+    if (laggySamples >= 20 && !submitted) {
+      alreadyLogged = true;
       logViolation('remote_access', 'High pointer latency pattern — possible remote desktop');
     }
   }, {passive: true, capture: true});
-  // Heuristic 3: hardware concurrency + memory — virtualised remote desktops often report 1 core
-  try {
-    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 1) {
-      logViolation('remote_access', 'hardwareConcurrency=' + navigator.hardwareConcurrency + ' — possible VM / remote');
-    }
-  } catch(_) {}
 }
 
 // ---- 9. CSP meta injection (block external iframes/scripts from extensions where possible) ----
@@ -563,16 +578,30 @@ if (violCheck('second_display')) {
 }
 
 // ------ Violations ------
+// Throttle + dedup: same violation type within 2.5s is suppressed → prevents flooding
+// when a single user action triggers multiple listeners (e.g. blur + visibilitychange).
+const _VIOL_LAST = Object.create(null);
+const _VIOL_DEDUP_MS = 2500;
 function logViolation(type, desc) {
   if (submitted) return;
+  const now = Date.now();
+  if (_VIOL_LAST[type] && (now - _VIOL_LAST[type]) < _VIOL_DEDUP_MS) {
+    // Duplicate of same type within dedup window — don't double-count.
+    return;
+  }
+  _VIOL_LAST[type] = now;
   violations++;
-  document.getElementById('viol-count').textContent = violations;
+  const vc = document.getElementById('viol-count'); if (vc) vc.textContent = violations;
   const w = document.getElementById('warn');
-  w.textContent = `Warning ${violations}/${MAX_V}: ${desc}`;
-  w.classList.remove('d-none');
-  setTimeout(() => w.classList.add('d-none'), 4000);
-  fetch(VIOL_URL, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: 'attempt_id=' + ATTEMPT_ID + '&event_type=' + encodeURIComponent(type) + '&description=' + encodeURIComponent(desc) });
+  if (w) {
+    w.textContent = `Warning ${violations}/${MAX_V}: ${desc}`;
+    w.classList.remove('d-none');
+    setTimeout(() => w.classList.add('d-none'), 4000);
+  }
+  try {
+    fetch(VIOL_URL, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'attempt_id=' + ATTEMPT_ID + '&event_type=' + encodeURIComponent(type) + '&description=' + encodeURIComponent(desc) });
+  } catch(_) {}
   if (violations >= MAX_V) autoSubmit('Auto-submitted: too many violations');
 }
 

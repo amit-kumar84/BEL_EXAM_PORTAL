@@ -318,18 +318,49 @@ const I18N = {
 
 const overlay = document.getElementById('fs-overlay');
 const startBtn = document.getElementById('fs-start-btn');
+function _fsElLocal(){ return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null; }
+function _enterFsLocal(){
+  if (_fsElLocal()) return Promise.resolve();
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+  if (!req) return Promise.reject(new Error('Fullscreen API not supported by this browser'));
+  try {
+    const r = req.call(el);
+    if (r && typeof r.then === 'function') return r.catch(e => { throw e; });
+    // Older Safari / IE: wait for fullscreenchange as a pseudo-promise
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const t = setTimeout(() => { if (!done) { done = true; _fsElLocal() ? resolve() : reject(new Error('Fullscreen did not engage within 2s')); } }, 2000);
+      const on = () => { if (!done && _fsElLocal()) { done = true; clearTimeout(t); resolve(); } };
+      document.addEventListener('fullscreenchange', on, {once:true});
+      document.addEventListener('webkitfullscreenchange', on, {once:true});
+    });
+  } catch (e) { return Promise.reject(e); }
+}
 if (startBtn) {
   startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entering fullscreen…';
     try {
-      await document.documentElement.requestFullscreen();
+      await _enterFsLocal();
     } catch (err) {
-      alert('Fullscreen was blocked by the browser. Please allow fullscreen and try again.');
+      startBtn.disabled = false;
+      startBtn.innerHTML = '<i class="fas fa-expand me-2"></i>Enter Fullscreen & Start Exam';
+      alert('Fullscreen could not be entered. Please allow fullscreen for this site and try again.\n\nDetails: ' + (err && err.message ? err.message : err));
+      return;
+    }
+    if (!_fsElLocal()) {
+      startBtn.disabled = false;
+      startBtn.innerHTML = '<i class="fas fa-expand me-2"></i>Enter Fullscreen & Start Exam';
+      alert('Unable to enter fullscreen. Check your browser permissions and try again.');
       return;
     }
     overlay?.remove();
     if (typeof startLockdown === 'function') startLockdown();
   });
 }
+// Safety net: if fullscreen is already active on load (unlikely), clear the start overlay.
+if (_fsElLocal() && overlay) overlay.remove();
 </script>
 <script>
 function beep(){
